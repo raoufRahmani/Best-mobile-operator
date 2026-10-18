@@ -1,0 +1,25 @@
+import requests
+
+URL = "https://data.geopf.fr/geocodage/search"
+
+
+def geocoder(adresse):
+    """Transforme une adresse en position GPS. Renvoie None si introuvable."""
+    reponse = requests.get(URL, params={"q": adresse, "limit": 1}, timeout=10)
+    resultats = reponse.json()["features"]
+    if not resultats:
+        return None
+
+    lon, lat = resultats[0]["geometry"]["coordinates"]
+    infos = resultats[0]["properties"]
+    return {
+        "adresse": infos["label"],
+        "latitude": lat,
+        "longitude": lon,
+        "code_insee": infos["citycode"],
+        "confiance": infos["score"],
+    }
+
+
+if __name__ == "__main__":
+    print(geocoder("112 Bd de l'Hôpital"))
