@@ -49,9 +49,8 @@ def mesures_autour(mesures, lat, lon, rayon_km=2):
     resume[["nb_tests", "nb_debits"]] = resume[["nb_tests", "nb_debits"]].fillna(0).astype(int)
 
     # 2) Résultats nationaux de chaque opérateur
-    national = mesures.groupby("operateur").agg(taux_nat=("reussi", "mean"),
-                                                debit_nat=("debit", "median"))
-    resume = resume.join(national)
+    resume["taux_nat"] = mesures["reussi"].mean()       # moyenne tous opérateurs confondus
+    resume["debit_nat"] = mesures["debit"].median()
 
     # 3) Lissage : peu de tests -> proche du national ; beaucoup -> proche du local
     n, d = resume["nb_tests"], resume["nb_debits"]
