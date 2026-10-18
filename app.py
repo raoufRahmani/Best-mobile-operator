@@ -64,7 +64,7 @@ def suggestions(texte):
     return chercher_adresses(texte) if texte and len(texte) >= 3 else []
 
 
-adresse = st_searchbox(suggestions, placeholder="Tape ton adresse... ex. : 11 rue Jean Jaurès", key="adresse")
+adresse = st_searchbox(suggestions, placeholder="Tape ton adresse... ex. : 5 avenue Anatole France, Paris", key="adresse")
 
 if adresse:
     with st.spinner("Analyse en cours..."):
