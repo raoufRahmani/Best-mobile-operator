@@ -2,6 +2,7 @@ import io, json, re, zipfile
 from pathlib import Path
 from urllib.parse import urljoin
 import requests
+import py7zr
 
 API = "https://www.data.gouv.fr/api/1/datasets/"
 MEMO = Path("data_raw/derniere_version.json")   # ce qu'on a déjà téléchargé
@@ -73,6 +74,33 @@ def collect_arcep():
     print("ARCEP OK")
 
 
+def collect_couverture():
+    page_url = "https://data.arcep.fr/mobile/couvertures_theoriques/last/Metropole/00_Metropole/index.html"
+    page = requests.get(page_url, timeout=30).text
+    liens = [urljoin(page_url, l) for l in re.findall(r'href="([^"]*_4G_data\.gpkg\.7z)"', page)]
+    if not liens:
+        print("COUVERTURE : fichiers 4G introuvables sur", page_url); return
+    if lire_memo().get("couverture") == liens:
+        print("COUVERTURE : pas de nouvelle version"); return
+
+    dossier = Path("data_raw/couverture"); dossier.mkdir(parents=True, exist_ok=True)
+    for ancien in list(dossier.glob("*.gpkg")) + list(dossier.glob("*.7z")):
+        ancien.unlink()                                  # on supprime l'ancien trimestre
+
+    for url in liens:
+        archive = dossier / url.split("/")[-1]
+        print("COUVERTURE : téléchargement de", archive.name)
+        with requests.get(url, stream=True, timeout=600) as r:
+            with open(archive, "wb") as f:
+                for morceau in r.iter_content(chunk_size=1 << 20):
+                    f.write(morceau)
+        with py7zr.SevenZipFile(archive) as z:
+            z.extractall(dossier)
+        archive.unlink()                                 # on garde le .gpkg, on jette le .7z
+    ecrire_memo("couverture", liens); print("COUVERTURE OK")
+
+
 if __name__ == "__main__":
     collect_anfr()
     collect_arcep()
+    collect_couverture()
