@@ -8,7 +8,8 @@ import pandas as pd
 
 ANFR = Path("data_raw/anfr")
 SORTIE = Path("data/sites.csv")
-
+ARCEP = Path("data_raw/arcep")
+SORTIE_MESURES = Path("data/mesures.csv")
 # Les 4 opérateurs mobiles (ADM_ID dans SUP_EXPLOITANT)
 OPERATEURS = {"6": "Bouygues", "23": "Orange", "137": "SFR", "240": "Free"}
 
@@ -93,5 +94,39 @@ def clean():
     print("\nclean OK")
 
 
+
+def clean_arcep():
+    # 1) Lire le fichier Arcep (seulement les colonnes utiles)
+    fichier = sorted(ARCEP.glob("*data_habitations.csv"))[-1]
+    m = pd.read_csv(
+        fichier, sep=None, engine="python", encoding="latin-1", decimal=",",
+        usecols=["operator", "latitude_start", "longitude_start", "protocole", "Result", "bitrate_dl"],
+    )
+
+    # 2) Noms en français, comme sites.csv
+    m = m.rename(columns={
+        "operator": "operateur",
+        "latitude_start": "latitude",
+        "longitude_start": "longitude",
+        "bitrate_dl": "debit",
+    })
+
+    # 3) Le test a-t-il réussi ? (True / False)
+    m["reussi"] = m["Result"] == "Success"
+
+    # 4) On garde les tests avec une position, et on enregistre
+    m = m.dropna(subset=["latitude", "longitude"])
+    m = m[["operateur", "latitude", "longitude", "protocole", "reussi", "debit"]]
+    m.to_csv(SORTIE_MESURES, index=False)
+
+    print("Mesures Arcep :", len(m))
+    print(m.groupby("operateur").agg(nb_tests=("reussi", "size"),
+                                     taux_reussite=("reussi", "mean"),
+                                     nb_debits=("debit", "count"),
+                                     debit_median=("debit", "median")))
+
+
+
 if __name__ == "__main__":
     clean()
+    clean_arcep()
