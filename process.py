@@ -56,3 +56,25 @@ comptage = (
             .astype({"nb_sites_5g_3500": int, "nouveaux_sites_12m": int})
 )
 print(comptage[comptage["code_insee"] == "92050"])
+
+
+# 6) Score de 0 à 1 dans chaque commune
+POIDS = {
+    "nb_sites_4g": 0.4,
+    "nb_sites_5g_3500": 0.3,
+    "nb_sites_5g": 0.2,
+    "nouveaux_sites_12m": 0.1,
+}
+
+comptage["score"] = 0.0
+for colonne, poids in POIDS.items():
+    meilleur = comptage.groupby("code_insee")[colonne].transform("max")
+    comptage["score"] += poids * (comptage[colonne] / meilleur).fillna(0)
+comptage["score"] = comptage["score"].round(2)
+
+print(comptage[comptage["code_insee"] == "92050"])
+
+
+# 7) Enregistrer le résultat
+comptage.to_csv("data/communes_operateurs.csv", index=False)
+print("process OK")
