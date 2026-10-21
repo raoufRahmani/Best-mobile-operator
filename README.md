@@ -71,20 +71,19 @@ Toutes les données sont ouvertes, et elles sont récupérées automatiquement v
 ## Le pipeline
 
 ```
-collect.py  →  clean.py  →  process.py  →  app.py
+collect.py  →  clean.py  →  app.py
 ```
 
 | Fichier | Rôle |
 |---|---|
 | `collect.py` | Télécharge les données, seulement s'il existe une nouvelle version |
 | `clean.py` | Nettoie et assemble : garde les 4 opérateurs, la 4G/5G, la France métropolitaine |
-| `process.py` | Calcule les indicateurs par commune |
 | `adresse.py` | Transforme une adresse en coordonnées GPS |
 | `antennes_proches.py` | Antennes et mesures Arcep autour d'un point |
 | `couverture.py` | Niveau de couverture 4G à un point |
 | `score.py` | Combine tout en un score et un verdict |
 | `app.py` | L'interface (Streamlit) |
-| `run.sh` | Lance le pipeline, le relance toutes les 24 h en arrière-plan (avec des logs dans `log/`), et démarre l'appli |
+| `run.sh` | Lance le pipeline (qui s'arrête proprement si une étape échoue), le relance toutes les 24 h en arrière-plan (avec des logs dans `log/`), et démarre l'appli |
 | `Dockerfile` | Emballe le tout dans une image Docker |
 
 ---
