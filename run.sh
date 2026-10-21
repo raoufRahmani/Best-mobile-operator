@@ -12,9 +12,9 @@ trap 'kill 0' EXIT
 pipeline() {
     LOG="log/pipeline_$(date +%Y-%m-%d_%H-%M).log"
     echo "=== Début : $(date) ===" >> "$LOG"
-    python collect.py >> "$LOG" 2>&1
-    python clean.py   >> "$LOG" 2>&1
-    python process.py >> "$LOG" 2>&1
+    python collect.py >> "$LOG" 2>&1 \
+        && python clean.py >> "$LOG" 2>&1 \
+        || echo "!!! Échec du pipeline" >> "$LOG"
     echo "=== Fin : $(date) ===" >> "$LOG"
     echo "Pipeline terminé, voir $LOG"
 }
@@ -31,5 +31,4 @@ pipeline
 ) &
 
 # 3) L'appli, au premier plan
-streamlit run app.py --server.port 8501 --server.address 0.0.0.0
 streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --browser.gatherUsageStats false
