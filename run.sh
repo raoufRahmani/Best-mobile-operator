@@ -30,5 +30,5 @@ pipeline
     done
 ) &
 
-# 3) L'appli, au premier plan
-streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --browser.gatherUsageStats false
+# 3) L'appli (Flask, port 8501), au premier plan
+python app.py

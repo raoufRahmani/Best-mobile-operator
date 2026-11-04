@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quel opérateur chez moi ?</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'><rect width='26' height='26' rx='8' fill='%23111418'/><rect x='6' y='15' width='3' height='5' rx='1' fill='%23FFE14D'/><rect x='11.5' y='11' width='3' height='9' rx='1' fill='%23FFE14D'/><rect x='17' y='6' width='3' height='14' rx='1' fill='%23FFE14D'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<header>
+  <div class="conteneur">
+    <a class="logo" href="/">
+      <svg width="26" height="26" viewBox="0 0 26 26"><rect width="26" height="26" rx="8" fill="#111418"/><rect x="6" y="15" width="3" height="5" rx="1" fill="#FFE14D"/><rect x="11.5" y="11" width="3" height="9" rx="1" fill="#FFE14D"/><rect x="17" y="6" width="3" height="14" rx="1" fill="#FFE14D"/></svg>
+      Quel opérateur chez moi ?
+    </a>
+    <nav>
+      <a href="#radar">Carte</a>
+      <a href="#methode">Méthode</a>
+      <a class="bouton" href="https://www.data.gouv.fr/datasets/mon-reseau-mobile" target="_blank">Données ouvertes</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="ondes" aria-hidden="true"><span></span><span></span><span></span></div>
+  <div class="conteneur">
+    <span class="eyebrow"><i></i>Données ANFR &amp; Arcep · mises à jour automatiquement</span>
+    <h1 class="titre">Tous « le meilleur réseau ».<br><span class="surligne">Mais chez toi ?</span></h1>
+    <p>Tape ton adresse. On regarde les antennes autour et les mesures réelles pour te dire quel opérateur capte vraiment le mieux.</p>
+
+    <form class="form" id="form" autocomplete="off">
+      <input id="adresse" placeholder="Ton adresse, ex. : 8 rue du Port, Nanterre" aria-label="Adresse">
+      <button type="submit">Comparer →</button>
+      <ul class="suggestions" id="suggestions"></ul>
+    </form>
+    <p class="erreur" id="erreur"></p>
+  </div>
+</section>
+
+<div class="chargement" id="chargement" hidden>
+  <span class="signal-anime"><i></i><i></i><i></i><i></i></span>
+  Recherche du signal…
+</div>
+
+<div id="resultats" hidden>
+  <section class="resultat">
+    <div class="conteneur">
+      <div class="entete">
+        <div>
+          <span class="etiquette">01 · Le verdict</span>
+          <h2 class="titre">Ton téléphone, chez toi, avec…</h2>
+        </div>
+        <span id="lieu"></span>
+      </div>
+      <div class="telephones" id="telephones"></div>
+      <div class="conseil" id="conseil"></div>
+    </div>
+  </section>
+
+  <section class="radar" id="radar">
+    <div class="conteneur grille">
+      <div>
+        <span class="etiquette">02 · Autour de toi</span>
+        <h2 class="titre">Le radar des antennes</h2>
+        <p>Chaque point est une antenne 4G ou 5G déclarée à l'ANFR. Les cercles marquent 250 m, 500 m et 1 km autour de ton adresse.</p>
+        <div class="filtres" id="filtres"></div>
+        <div class="distances" id="distances"></div>
+      </div>
+      <div id="carte"></div>
+    </div>
+  </section>
+</div>
+
+<section class="methode" id="methode">
+  <div class="conteneur">
+    <span class="etiquette">03 · La méthode</span>
+    <h2 class="titre">Comment on calcule le score</h2>
+    <div class="barre-poids">
+      <div class="arcep fort" style="flex:30"><b>30 %</b>Couverture 4G</div>
+      <div class="arcep fort" style="flex:30"><b>30 %</b>Tests réussis</div>
+      <div class="arcep" style="flex:20"><b>20 %</b>Débit mesuré</div>
+      <div class="anfr" style="flex:10"><b>10 %</b>5G rapide</div>
+      <div class="anfr fort" style="flex:10"><b>10 %</b>Distance</div>
+    </div>
+    <div class="legende-poids">
+      <span><i class="arcep"></i>Mesures Arcep</span>
+      <span><i class="anfr"></i>Antennes ANFR</span>
+      <span>Peu de tests près de chez toi ? On complète avec la moyenne nationale.</span>
+    </div>
+    <p class="limite">Une antenne proche ne garantit pas une bonne réception à l'intérieur (murs, relief). C'est pour ça que le score s'appuie surtout sur les mesures de terrain.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="conteneur">
+    <span>Projet M2 MoSEF · Université Paris 1 Panthéon-Sorbonne</span>
+    <span>Sources : ANFR · Arcep · IGN</span>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
