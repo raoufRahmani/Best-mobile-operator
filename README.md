@@ -99,7 +99,8 @@ collect.py  →  clean.py  →  app.py
 
 ## Auteurs
 
+- Aya WIFAK
 - Abderraouf Rahmani
-- *(binôme)*
+
 
 Image Docker : [raoufrhm/best-mobile-operator](https://hub.docker.com/r/raoufrhm/best-mobile-operator)
