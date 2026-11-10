@@ -31,7 +31,7 @@ pip install -r requirements.txt
 bash run.sh
 ```
 
-Sous Windows, `run.sh` se lance depuis **Git Bash**.
+Sous Windows, `run.sh` se lance depuis **Git Bash**. Si `pip` n'est pas reconnu, utilise `py -m pip install -r requirements.txt`.
 
 ---
 
