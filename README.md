@@ -15,12 +15,12 @@ Elle ne se base pas sur la pub des opérateurs, mais sur des **données publique
 Il faut juste [Docker Desktop](https://www.docker.com/products/docker-desktop/) installé et lancé.
 
 ```bash
-docker run -p 8501:8501 -v bmo_data:/app/data_raw raoufrhm/best-mobile-operator:latest
+docker run -p 8501:8501 -v bmo_data:/app/data raoufrhm/best-mobile-operator:latest
 ```
 
 Puis ouvrir **http://localhost:8501**.
 
-⏳ Le premier lancement prend environ 15 minutes : le conteneur télécharge les données (~1,3 Go) et les prépare. Les lancements suivants prennent environ 1 minute, grâce au volume `bmo_data` qui garde les données.
+⚡ L'appli démarre **tout de suite** : les données déjà préparées (~27 Mo) sont dans le dépôt, dans `data/`. Rien à télécharger. En arrière-plan, le pipeline vérifie chaque jour si l'ANFR ou l'Arcep ont publié une nouvelle version, et ne télécharge que dans ce cas. Le volume `bmo_data` garde ces mises à jour d'un lancement à l'autre.
 
 ### Sans Docker
 
@@ -76,14 +76,14 @@ collect.py  →  clean.py  →  app.py
 
 | Fichier | Rôle |
 |---|---|
-| `collect.py` | Télécharge les données, seulement s'il existe une nouvelle version |
-| `clean.py` | Nettoie et assemble : garde les 4 opérateurs, la 4G/5G, la France métropolitaine |
+| `collect.py` | Télécharge une source seulement si elle a publié une nouvelle version (mémoire : `data/derniere_version.json`) |
+| `clean.py` | Nettoie et assemble (4 opérateurs, 4G/5G, France métropolitaine) dans `data/*.csv.gz`, puis supprime les fichiers bruts |
 | `adresse.py` | Transforme une adresse en coordonnées GPS |
 | `antennes_proches.py` | Antennes et mesures Arcep autour d'un point |
-| `couverture.py` | Niveau de couverture 4G à un point |
+| `couverture.py` | Transforme les cartes de couverture 4G (3 Go) en une grille de 100 m (21 Mo), et lit le niveau à un point |
 | `score.py` | Combine tout en un score et un verdict |
-| `app.py` | L'interface (Streamlit) |
-| `run.sh` | Lance le pipeline (qui s'arrête proprement si une étape échoue), le relance toutes les 24 h en arrière-plan (avec des logs dans `log/`), et démarre l'appli |
+| `app.py` + `templates/` + `static/` | L'interface (Flask + HTML/CSS/JS) |
+| `run.sh` | Démarre l'appli tout de suite et lance le pipeline toutes les 24 h en arrière-plan (logs dans `log/`). L'appli recharge les données toute seule quand elles changent |
 | `Dockerfile` | Emballe le tout dans une image Docker |
 
 ---

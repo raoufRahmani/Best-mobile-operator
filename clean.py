@@ -1,15 +1,28 @@
 """
 clean.py — Étape 2 du pipeline
-Lit les tables ANFR brutes (data_raw/anfr/) et produit un fichier propre :
-data/sites.csv = 1 ligne par site × opérateur × techno × fréquence (France métropolitaine, 4G/5G).
+Lit les fichiers bruts téléchargés (data_raw/) et produit des fichiers propres et compressés :
+data/sites.csv.gz   = 1 ligne par site × opérateur × techno × fréquence (France métropolitaine, 4G/5G).
+data/mesures.csv.gz = 1 ligne par test Arcep.
+Les fichiers de data/ sont dans le dépôt Git : un clone n'a rien à télécharger.
+Une source n'est traitée que si collect.py vient d'en télécharger une nouvelle version ; le brut est ensuite supprimé.
 """
+import os
+import shutil
 from pathlib import Path
 import pandas as pd
 
 ANFR = Path("data_raw/anfr")
-SORTIE = Path("data/sites.csv")
+SORTIE = Path("data/sites.csv.gz")
 ARCEP = Path("data_raw/arcep")
-SORTIE_MESURES = Path("data/mesures.csv")
+SORTIE_MESURES = Path("data/mesures.csv.gz")
+
+
+def enregistrer(df, chemin):
+    """Écrit le CSV compressé d'un coup (fichier temporaire puis renommage) : l'appli ne lit jamais un fichier à moitié écrit."""
+    chemin.parent.mkdir(parents=True, exist_ok=True)
+    temporaire = chemin.with_suffix(".tmp")
+    df.to_csv(temporaire, index=False, compression={"method": "gzip", "mtime": 0})
+    os.replace(temporaire, chemin)
 # Les 4 opérateurs mobiles (ADM_ID dans SUP_EXPLOITANT)
 OPERATEURS = {"6": "Bouygues", "23": "Orange", "137": "SFR", "240": "Free"}
 
@@ -82,8 +95,7 @@ def clean():
              .sort_values(["code_insee", "operateur", "techno", "frequence"])
     )
 
-    SORTIE.parent.mkdir(parents=True, exist_ok=True)
-    sites.to_csv(SORTIE, index=False)
+    enregistrer(sites, SORTIE)
 
     # Petit résumé pour vérifier
     print("\nLignes dans", SORTIE, ":", len(sites))
@@ -117,7 +129,7 @@ def clean_arcep():
     # 4) On garde les tests avec une position, et on enregistre
     m = m.dropna(subset=["latitude", "longitude"])
     m = m[["operateur", "latitude", "longitude", "protocole", "reussi", "debit"]]
-    m.to_csv(SORTIE_MESURES, index=False)
+    enregistrer(m, SORTIE_MESURES)
 
     print("Mesures Arcep :", len(m))
     print(m.groupby("operateur").agg(nb_tests=("reussi", "size"),
@@ -128,5 +140,14 @@ def clean_arcep():
 
 
 if __name__ == "__main__":
-    clean()
-    clean_arcep()
+    if (ANFR / "SUP_STATION.txt").exists():
+        clean()
+        shutil.rmtree(ANFR)                  # le brut ne sert plus : on libère la place
+    else:
+        print("ANFR : rien de nouveau à nettoyer")
+
+    if list(ARCEP.glob("*data_habitations.csv")):
+        clean_arcep()
+        shutil.rmtree(ARCEP)
+    else:
+        print("ARCEP : rien de nouveau à nettoyer")
