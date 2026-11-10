@@ -1,6 +1,5 @@
 .venv/
 data_raw/
-data/
 log/
 archived/
 __pycache__/

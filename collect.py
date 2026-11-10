@@ -1,11 +1,13 @@
-import io, json, re, zipfile
+import io, json, os, re, zipfile
 from pathlib import Path
 from urllib.parse import urljoin
+import numpy as np
 import requests
 import py7zr
+from couverture import GRILLE, CODES, vers_grille, assembler
 
 API = "https://www.data.gouv.fr/api/1/datasets/"
-MEMO = Path("data_raw/derniere_version.json")   # ce qu'on a déjà téléchargé
+MEMO = Path("data/derniere_version.json")   # les versions déjà traitées (dans le dépôt Git)
 
 
 def lire_memo():
@@ -40,6 +42,8 @@ def collect_anfr():
         print("ANFR : téléchargement de", r["title"])
         contenu = requests.get(r["url"], timeout=600).content
         zipfile.ZipFile(io.BytesIO(contenu)).extractall(dossier)
+    for inutile in ["SUP_BANDE.txt", "SUP_ANTENNE.txt"]:      # 235 Mo dont clean.py ne se sert pas
+        (dossier / inutile).unlink(missing_ok=True)
     ecrire_memo("anfr", a_jour)
     print("ANFR OK")
 
@@ -49,16 +53,22 @@ def collect_arcep():
     ressources = requests.get(API + "mon-reseau-mobile/", timeout=30).json()["resources"]
     dossier_url = plus_recent(ressources, "Mesures de qualité de service")["url"]
 
-    page_url = urljoin(dossier_url, "last/Metropole/")
-    page = requests.get(page_url, timeout=30).text
-
-    liens = re.findall(r'href="([^"]*data_habitations\.csv)"', page)
-    if not liens:
-        print("ARCEP : fichier data_habitations introuvable sur", page_url)
+    # Un dossier par année ; la plus récente n'a pas toujours la Métropole (ex. 2026 : Outre-mer seulement)
+    accueil = requests.get(urljoin(dossier_url, "index.html"), timeout=30).text
+    annees = sorted(set(re.findall(r'href="(\d{4})/index\.html"', accueil)), reverse=True)
+    fichier_url = None
+    for annee in annees:
+        page_url = urljoin(dossier_url, f"{annee}/Metropole/index.html")
+        liens = re.findall(r'href="([^"]*data_habitations\.csv)"', requests.get(page_url, timeout=30).text)
+        if liens:
+            fichier_url = urljoin(page_url, liens[0])
+            break
+    if fichier_url is None:
+        print("ARCEP : fichier data_habitations introuvable sous", dossier_url)
         return
-    fichier_url = urljoin(page_url, liens[0])
 
-    if lire_memo().get("arcep") == fichier_url:
+    # On compare le nom du fichier (l'Arcep déplace parfois ses dossiers sans changer les données)
+    if lire_memo().get("arcep", "").split("/")[-1] == fichier_url.split("/")[-1]:
         print("ARCEP : pas de nouvelle version")
         return
 
@@ -80,14 +90,17 @@ def collect_couverture():
     liens = [urljoin(page_url, l) for l in re.findall(r'href="([^"]*_4G_data\.gpkg\.7z)"', page)]
     if not liens:
         print("COUVERTURE : fichiers 4G introuvables sur", page_url); return
-    if lire_memo().get("couverture") == liens:
+    if lire_memo().get("couverture") == liens and GRILLE.exists():
         print("COUVERTURE : pas de nouvelle version"); return
 
     dossier = Path("data_raw/couverture"); dossier.mkdir(parents=True, exist_ok=True)
     for ancien in list(dossier.glob("*.gpkg")) + list(dossier.glob("*.7z")):
-        ancien.unlink()                                  # on supprime l'ancien trimestre
+        ancien.unlink()                                  # restes d'un passage interrompu
 
+    # Un opérateur à la fois : télécharger -> extraire -> grille 100 m -> supprimer (~1 Go max sur le disque)
+    grilles = {}
     for url in liens:
+        code = next(c for c in CODES if f"_{c}_4G" in url)
         archive = dossier / url.split("/")[-1]
         print("COUVERTURE : téléchargement de", archive.name)
         with requests.get(url, stream=True, timeout=600) as r:
@@ -96,7 +109,15 @@ def collect_couverture():
                     f.write(morceau)
         with py7zr.SevenZipFile(archive) as z:
             z.extractall(dossier)
-        archive.unlink()                                 # on garde le .gpkg, on jette le .7z
+        archive.unlink()
+        gpkg = next(dossier.glob(f"*_{code}_4G_data.gpkg"))
+        print("COUVERTURE : conversion en grille de", gpkg.name, "(~5 min)")
+        grilles[code] = vers_grille(gpkg)
+        gpkg.unlink()
+
+    temporaire = GRILLE.with_suffix(".tmp.npz")         # écrit à côté puis renommé : l'appli ne lit jamais un fichier à moitié écrit
+    np.savez_compressed(temporaire, grille=assembler(grilles))
+    os.replace(temporaire, GRILLE)
     ecrire_memo("couverture", liens); print("COUVERTURE OK")
 
 

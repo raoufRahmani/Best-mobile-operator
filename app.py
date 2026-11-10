@@ -1,4 +1,5 @@
 import math
+from pathlib import Path
 import pandas as pd
 from flask import Flask, jsonify, render_template, request
 from score import score_adresse
@@ -10,10 +11,19 @@ app = Flask(__name__)
 # Marque moins chère qui utilise le même réseau
 MOINS_CHER = {"Orange": "Sosh", "SFR": "RED by SFR", "Bouygues": "B&You"}
 
-# Les données sont lues une seule fois, au démarrage (pas à chaque recherche)
-sites = pd.read_csv("data/sites.csv", dtype={"site_id": str, "code_insee": str},
-                    parse_dates=["date_service"])
-mesures = pd.read_csv("data/mesures.csv")
+SITES, MESURES = Path("data/sites.csv.gz"), Path("data/mesures.csv.gz")
+_cache = {"date": None}
+
+
+def donnees():
+    """Les données, lues une fois puis relues seulement si le pipeline les a mises à jour."""
+    date = (SITES.stat().st_mtime, MESURES.stat().st_mtime)
+    if _cache["date"] != date:
+        _cache["sites"] = pd.read_csv(SITES, dtype={"site_id": str, "code_insee": str},
+                                      parse_dates=["date_service"])
+        _cache["mesures"] = pd.read_csv(MESURES)
+        _cache["date"] = date
+    return _cache["sites"], _cache["mesures"]
 
 
 def propre(valeur):
@@ -36,6 +46,7 @@ def adresses():
 @app.route("/api/score")
 def score():
     """Adresse -> verdict, classement des 4 opérateurs et antennes à moins d'1 km."""
+    sites, mesures = donnees()
     lieu, tableau = score_adresse(request.args.get("adresse", ""), sites, mesures)
     if lieu is None:
         return jsonify({"erreur": "Adresse introuvable"}), 404
@@ -75,4 +86,5 @@ def score():
 
 
 if __name__ == "__main__":
+    donnees()                                    # lecture au démarrage, pas à la 1re recherche
     app.run(host="0.0.0.0", port=8501)

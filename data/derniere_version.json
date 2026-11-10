@@ -1,0 +1,13 @@
+{
+  "anfr": {
+    "Tables supports antennes \u00e9metteurs bandes": "c20f4eb5-279c-455c-8b49-b56633d27f62",
+    "Tables de r\u00e9f\u00e9rence": "d306c9b9-c1a6-4a0b-9b23-d6dcbfa84de2"
+  },
+  "arcep": "https://data.arcep.fr/mobile/mesures_qualite_arcep/last/Metropole/2025_QoS_Metropole_data_habitations.csv",
+  "couverture": [
+    "https://data.arcep.fr/mobile/couvertures_theoriques/last/Metropole/00_Metropole/2026_T2_couv_Metropole_BOUY_4G_data.gpkg.7z",
+    "https://data.arcep.fr/mobile/couvertures_theoriques/last/Metropole/00_Metropole/2026_T2_couv_Metropole_FREE_4G_data.gpkg.7z",
+    "https://data.arcep.fr/mobile/couvertures_theoriques/last/Metropole/00_Metropole/2026_T2_couv_Metropole_OF_4G_data.gpkg.7z",
+    "https://data.arcep.fr/mobile/couvertures_theoriques/last/Metropole/00_Metropole/2026_T2_couv_Metropole_SFR0_4G_data.gpkg.7z"
+  ]
+}

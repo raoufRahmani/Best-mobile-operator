@@ -32,9 +32,9 @@ def score_adresse(adresse, sites, mesures):
 
 
 if __name__ == "__main__":
-    sites = pd.read_csv("data/sites.csv", dtype={"site_id": str, "code_insee": str},
+    sites = pd.read_csv("data/sites.csv.gz", dtype={"site_id": str, "code_insee": str},
                         parse_dates=["date_service"])
-    mesures = pd.read_csv("data/mesures.csv")
+    mesures = pd.read_csv("data/mesures.csv.gz")
 
     lieu, tableau = score_adresse("8 rue du port nanterre", sites, mesures)
     print(lieu["adresse"])

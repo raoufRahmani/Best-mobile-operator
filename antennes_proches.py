@@ -64,12 +64,12 @@ def mesures_autour(mesures, lat, lon, rayon_km=2):
 
 if __name__ == "__main__":
     sites = pd.read_csv(
-        "data/sites.csv",
+        "data/sites.csv.gz",
         dtype={"site_id": str, "code_insee": str},
         parse_dates=["date_service"],
     )
     lieu = geocoder("8 rue du port nanterre")
     print(lieu["adresse"])
     print(antennes_autour(sites, lieu["latitude"], lieu["longitude"]))
-    mesures = pd.read_csv("data/mesures.csv")
+    mesures = pd.read_csv("data/mesures.csv.gz")
     print(mesures_autour(mesures, lieu["latitude"], lieu["longitude"]))
