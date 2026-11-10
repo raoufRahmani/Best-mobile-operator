@@ -1,4 +1,6 @@
 import math
+import threading
+import webbrowser
 from pathlib import Path
 import pandas as pd
 from flask import Flask, jsonify, render_template, request
@@ -87,4 +89,6 @@ def score():
 
 if __name__ == "__main__":
     donnees()                                    # lecture au démarrage, pas à la 1re recherche
+    # Ouvre la page dans le navigateur une fois le serveur prêt (sans effet dans Docker ou sur un serveur)
+    threading.Timer(1.5, webbrowser.open, ["http://localhost:8501"]).start()
     app.run(host="0.0.0.0", port=8501)
