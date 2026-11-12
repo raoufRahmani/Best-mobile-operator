@@ -2,8 +2,9 @@
 # run.sh : l'appli tout de suite (les données sont dans le dépôt) + le pipeline en boucle en arrière-plan
 
 export PYTHONIOENCODING=utf-8
-INTERVALLE=86400        # temps entre 2 passages, en secondes (86400 = 24 h)
-mkdir -p log
+export PYTHONUNBUFFERED=1   # les messages arrivent tout de suite dans les logs
+INTERVALLE=86400            # temps entre 2 passages, en secondes (86400 = 24 h)
+mkdir -p log archived
 
 # Le nom de Python change selon l'installation : python, python3, ou py (Windows)
 for nom in python python3 py; do
@@ -23,8 +24,8 @@ trap 'kill 0' EXIT
 pipeline() {
     LOG="log/pipeline_$(date +%Y-%m-%d_%H-%M).log"
     echo "=== Début : $(date) ===" >> "$LOG"
-    $PYTHON collect.py >> "$LOG" 2>&1 \
-        && $PYTHON clean.py >> "$LOG" 2>&1 \
+    $PYTHON -m pipeline.collect >> "$LOG" 2>&1 \
+        && $PYTHON -m pipeline.clean >> "$LOG" 2>&1 \
         || echo "!!! Échec du pipeline" >> "$LOG"
     echo "=== Fin : $(date) ===" >> "$LOG"
     echo "Pipeline terminé, voir $LOG"
@@ -39,5 +40,6 @@ pipeline() {
 ) &
 
 # 2) L'appli (Flask, port 8501), au premier plan : elle démarre avec les données du dépôt
-#    et se recharge toute seule quand le pipeline les met à jour
-$PYTHON app.py
+#    et se recharge toute seule quand le pipeline les met à jour.
+#    Ses messages s'affichent dans le terminal ET sont gardés dans log/webapp.log
+$PYTHON -m webapp.app 2>&1 | tee -a log/webapp.log

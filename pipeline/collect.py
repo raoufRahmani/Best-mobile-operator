@@ -1,13 +1,17 @@
+"""
+collect.py — Étape 1 du pipeline
+Télécharge les données brutes dans data_raw/, seulement si une source a publié une nouvelle version
+(les versions déjà traitées sont notées dans data/derniere_version.json).
+Lancement, depuis la racine du projet : python -m pipeline.collect
+"""
 import io, json, os, re, zipfile
-from pathlib import Path
 from urllib.parse import urljoin
 import numpy as np
 import requests
 import py7zr
-from couverture import GRILLE, CODES, vers_grille, assembler
-
-API = "https://www.data.gouv.fr/api/1/datasets/"
-MEMO = Path("data/derniere_version.json")   # les versions déjà traitées (dans le dépôt Git)
+from config import API_DATAGOUV, JEU_ANFR, TITRES_ANFR, JEU_ARCEP, TITRE_ARCEP, PAGE_COUVERTURE, BRUT, GRILLE, MEMO
+from pipeline.archive import archiver
+from pipeline.couverture import CODES, vers_grille, assembler
 
 
 def lire_memo():
@@ -28,18 +32,16 @@ def plus_recent(ressources, debut_titre):
 
 # ---------- Source 1 : ANFR (où sont les antennes)
 def collect_anfr(forcer=False):
-    ressources = requests.get(API + "donnees-sur-les-installations-radioelectriques-de-plus-de-5-watts-1/",
-                              timeout=30).json()["resources"]
-    titres = ["Tables supports antennes émetteurs bandes", "Tables de référence"]
-    a_jour = {t: plus_recent(ressources, t)["id"] for t in titres}
+    ressources = requests.get(API_DATAGOUV + JEU_ANFR + "/", timeout=30).json()["resources"]
+    a_jour = {t: plus_recent(ressources, t)["id"] for t in TITRES_ANFR}
 
     if lire_memo().get("anfr") == a_jour and not forcer:
         print("ANFR : pas de nouvelle version")
         return
 
-    dossier = Path("data_raw/anfr")
+    dossier = BRUT / "anfr"
     dossier.mkdir(parents=True, exist_ok=True)
-    for t in titres:
+    for t in TITRES_ANFR:
         r = plus_recent(ressources, t)
         print("ANFR : téléchargement de", r["title"])
         contenu = requests.get(r["url"], timeout=600).content
@@ -52,8 +54,8 @@ def collect_anfr(forcer=False):
 
 # ---------- Source 2 : Arcep (qualité mesurée)
 def collect_arcep(forcer=False):
-    ressources = requests.get(API + "mon-reseau-mobile/", timeout=30).json()["resources"]
-    dossier_url = plus_recent(ressources, "Mesures de qualité de service")["url"]
+    ressources = requests.get(API_DATAGOUV + JEU_ARCEP + "/", timeout=30).json()["resources"]
+    dossier_url = plus_recent(ressources, TITRE_ARCEP)["url"]
 
     # Un dossier par année ; la plus récente n'a pas toujours la Métropole (ex. 2026 : Outre-mer seulement)
     accueil = requests.get(urljoin(dossier_url, "index.html"), timeout=30).text
@@ -74,7 +76,7 @@ def collect_arcep(forcer=False):
         print("ARCEP : pas de nouvelle version")
         return
 
-    dossier = Path("data_raw/arcep")
+    dossier = BRUT / "arcep"
     dossier.mkdir(parents=True, exist_ok=True)
     nom = fichier_url.split("/")[-1]
     print("ARCEP : téléchargement de", nom)
@@ -86,18 +88,18 @@ def collect_arcep(forcer=False):
     print("ARCEP OK")
 
 
+# ---------- Source 3 : Arcep (couverture 4G théorique)
 def collect_couverture():
-    page_url = "https://data.arcep.fr/mobile/couvertures_theoriques/last/Metropole/00_Metropole/index.html"
-    page = requests.get(page_url, timeout=30).text
-    liens = [urljoin(page_url, lien) for lien in re.findall(r'href="([^"]*_4G_data\.gpkg\.7z)"', page)]
+    page = requests.get(PAGE_COUVERTURE, timeout=30).text
+    liens = [urljoin(PAGE_COUVERTURE, lien) for lien in re.findall(r'href="([^"]*_4G_data\.gpkg\.7z)"', page)]
     if not liens:
-        print("COUVERTURE : fichiers 4G introuvables sur", page_url)
+        print("COUVERTURE : fichiers 4G introuvables sur", PAGE_COUVERTURE)
         return
     if lire_memo().get("couverture") == liens and GRILLE.exists():
         print("COUVERTURE : pas de nouvelle version")
         return
 
-    dossier = Path("data_raw/couverture")
+    dossier = BRUT / "couverture"
     dossier.mkdir(parents=True, exist_ok=True)
     for ancien in list(dossier.glob("*.gpkg")) + list(dossier.glob("*.7z")):
         ancien.unlink()                                  # restes d'un passage interrompu
@@ -106,15 +108,15 @@ def collect_couverture():
     grilles = {}
     for url in liens:
         code = next(c for c in CODES if f"_{c}_4G" in url)
-        archive = dossier / url.split("/")[-1]
-        print("COUVERTURE : téléchargement de", archive.name)
+        fichier_7z = dossier / url.split("/")[-1]
+        print("COUVERTURE : téléchargement de", fichier_7z.name)
         with requests.get(url, stream=True, timeout=600) as r:
-            with open(archive, "wb") as f:
+            with open(fichier_7z, "wb") as f:
                 for morceau in r.iter_content(chunk_size=1 << 20):
                     f.write(morceau)
-        with py7zr.SevenZipFile(archive) as z:
+        with py7zr.SevenZipFile(fichier_7z) as z:
             z.extractall(dossier)
-        archive.unlink()
+        fichier_7z.unlink()
         gpkg = next(dossier.glob(f"*_{code}_4G_data.gpkg"))
         print("COUVERTURE : conversion en grille de", gpkg.name, "(~5 min)")
         grilles[code] = vers_grille(gpkg)
@@ -122,6 +124,7 @@ def collect_couverture():
 
     temporaire = GRILLE.with_suffix(".tmp.npz")         # écrit à côté puis renommé : l'appli ne lit jamais un fichier à moitié écrit
     np.savez_compressed(temporaire, grille=assembler(grilles))
+    archiver(GRILLE)                                     # l'ancienne grille part dans archived/
     os.replace(temporaire, GRILLE)
     ecrire_memo("couverture", liens)
     print("COUVERTURE OK")

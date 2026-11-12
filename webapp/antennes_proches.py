@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-from adresse import geocoder
+from config import SITES, MESURES
+from webapp.adresse import geocoder
 
 OPERATEURS = ["Bouygues", "Free", "Orange", "SFR"]
 
@@ -64,12 +65,12 @@ def mesures_autour(mesures, lat, lon, rayon_km=2):
 
 if __name__ == "__main__":
     sites = pd.read_csv(
-        "data/sites.csv.gz",
+        SITES,
         dtype={"site_id": str, "code_insee": str},
         parse_dates=["date_service"],
     )
     lieu = geocoder("8 rue du port nanterre")
     print(lieu["adresse"])
     print(antennes_autour(sites, lieu["latitude"], lieu["longitude"]))
-    mesures = pd.read_csv("data/mesures.csv.gz")
+    mesures = pd.read_csv(MESURES)
     print(mesures_autour(mesures, lieu["latitude"], lieu["longitude"]))

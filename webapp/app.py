@@ -1,19 +1,22 @@
+"""
+app.py — l'appli web (Flask) : la page + les routes /api/... qui renvoient le verdict.
+Lancement, depuis la racine du projet : python -m webapp.app
+"""
 import math
 import threading
 import webbrowser
-from pathlib import Path
 import pandas as pd
 from flask import Flask, jsonify, render_template, request
-from score import score_adresse
-from antennes_proches import distance_km
-from adresse import chercher_adresses
+from config import SITES, MESURES, PORT
+from webapp.score import score_adresse
+from webapp.antennes_proches import distance_km
+from webapp.adresse import chercher_adresses
 
 app = Flask(__name__)
 
 # Marque moins chère qui utilise le même réseau
 MOINS_CHER = {"Orange": "Sosh", "SFR": "RED by SFR", "Bouygues": "B&You"}
 
-SITES, MESURES = Path("data/sites.csv.gz"), Path("data/mesures.csv.gz")
 _cache = {"date": None}
 
 
@@ -91,5 +94,5 @@ def score():
 if __name__ == "__main__":
     donnees()                                    # lecture au démarrage, pas à la 1re recherche
     # Ouvre la page dans le navigateur une fois le serveur prêt (sans effet dans Docker ou sur un serveur)
-    threading.Timer(1.5, webbrowser.open, ["http://localhost:8501"]).start()
-    app.run(host="0.0.0.0", port=8501)
+    threading.Timer(1.5, webbrowser.open, [f"http://localhost:{PORT}"]).start()
+    app.run(host="0.0.0.0", port=PORT)

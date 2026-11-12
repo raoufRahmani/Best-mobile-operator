@@ -1,6 +1,7 @@
 import requests
+from config import API_ADRESSE
 
-URL = "https://data.geopf.fr/geocodage/search"
+URL = API_ADRESSE
 
 
 def geocoder(adresse):
