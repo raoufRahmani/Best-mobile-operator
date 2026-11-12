@@ -72,7 +72,8 @@ def score():
                        .agg(lat=("latitude", "first"), lon=("longitude", "first"),
                             techno=("techno", "max"))
                        .reset_index())
-    derniere = proches["date_service"].max()
+    # L'ANFR déclare aussi des mises en service prévues (dans le futur) : on ne garde que celles déjà passées
+    derniere = proches.loc[proches["date_service"] <= pd.Timestamp.today(), "date_service"].max()
 
     gagnant = operateurs[0]["nom"]
     return jsonify({

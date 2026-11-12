@@ -24,14 +24,16 @@ def plus_recent(ressources, debut_titre):
     return max(candidats, key=lambda r: r["last_modified"])
 
 
+# forcer=True : retélécharge même sans nouvelle version (sert au notebook d'exploration)
+
 # ---------- Source 1 : ANFR (où sont les antennes)
-def collect_anfr():
+def collect_anfr(forcer=False):
     ressources = requests.get(API + "donnees-sur-les-installations-radioelectriques-de-plus-de-5-watts-1/",
                               timeout=30).json()["resources"]
     titres = ["Tables supports antennes émetteurs bandes", "Tables de référence"]
     a_jour = {t: plus_recent(ressources, t)["id"] for t in titres}
 
-    if lire_memo().get("anfr") == a_jour:
+    if lire_memo().get("anfr") == a_jour and not forcer:
         print("ANFR : pas de nouvelle version")
         return
 
@@ -49,7 +51,7 @@ def collect_anfr():
 
 
 # ---------- Source 2 : Arcep (qualité mesurée)
-def collect_arcep():
+def collect_arcep(forcer=False):
     ressources = requests.get(API + "mon-reseau-mobile/", timeout=30).json()["resources"]
     dossier_url = plus_recent(ressources, "Mesures de qualité de service")["url"]
 
@@ -68,7 +70,7 @@ def collect_arcep():
         return
 
     # On compare le nom du fichier (l'Arcep déplace parfois ses dossiers sans changer les données)
-    if lire_memo().get("arcep", "").split("/")[-1] == fichier_url.split("/")[-1]:
+    if lire_memo().get("arcep", "").split("/")[-1] == fichier_url.split("/")[-1] and not forcer:
         print("ARCEP : pas de nouvelle version")
         return
 
@@ -87,13 +89,16 @@ def collect_arcep():
 def collect_couverture():
     page_url = "https://data.arcep.fr/mobile/couvertures_theoriques/last/Metropole/00_Metropole/index.html"
     page = requests.get(page_url, timeout=30).text
-    liens = [urljoin(page_url, l) for l in re.findall(r'href="([^"]*_4G_data\.gpkg\.7z)"', page)]
+    liens = [urljoin(page_url, lien) for lien in re.findall(r'href="([^"]*_4G_data\.gpkg\.7z)"', page)]
     if not liens:
-        print("COUVERTURE : fichiers 4G introuvables sur", page_url); return
+        print("COUVERTURE : fichiers 4G introuvables sur", page_url)
+        return
     if lire_memo().get("couverture") == liens and GRILLE.exists():
-        print("COUVERTURE : pas de nouvelle version"); return
+        print("COUVERTURE : pas de nouvelle version")
+        return
 
-    dossier = Path("data_raw/couverture"); dossier.mkdir(parents=True, exist_ok=True)
+    dossier = Path("data_raw/couverture")
+    dossier.mkdir(parents=True, exist_ok=True)
     for ancien in list(dossier.glob("*.gpkg")) + list(dossier.glob("*.7z")):
         ancien.unlink()                                  # restes d'un passage interrompu
 
@@ -118,7 +123,8 @@ def collect_couverture():
     temporaire = GRILLE.with_suffix(".tmp.npz")         # écrit à côté puis renommé : l'appli ne lit jamais un fichier à moitié écrit
     np.savez_compressed(temporaire, grille=assembler(grilles))
     os.replace(temporaire, GRILLE)
-    ecrire_memo("couverture", liens); print("COUVERTURE OK")
+    ecrire_memo("couverture", liens)
+    print("COUVERTURE OK")
 
 
 if __name__ == "__main__":
