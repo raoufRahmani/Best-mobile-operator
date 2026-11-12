@@ -31,6 +31,8 @@ pip install -r requirements.txt
 bash run.sh
 ```
 
+La page s'ouvre toute seule dans le navigateur (**http://localhost:8501**).
+
 Sous Windows, `run.sh` se lance depuis **Git Bash**. Si `pip` n'est pas reconnu, utilise `py -m pip install -r requirements.txt`.
 
 ---
@@ -85,6 +87,8 @@ collect.py  →  clean.py  →  app.py
 | `app.py` + `templates/` + `static/` | L'interface (Flask + HTML/CSS/JS) |
 | `run.sh` | Démarre l'appli tout de suite et lance le pipeline toutes les 24 h en arrière-plan (logs dans `log/`). L'appli recharge les données toute seule quand elles changent |
 | `Dockerfile` | Emballe le tout dans une image Docker |
+
+Pour comprendre les données : [`01_exploration.ipynb`](01_exploration.ipynb) (la première exploration, faite avant d'écrire `clean.py`) et [`DICTIONNAIRE_DONNEES.md`](DICTIONNAIRE_DONNEES.md) (chaque source, colonne et code, et le détail du score).
 
 ---
 
