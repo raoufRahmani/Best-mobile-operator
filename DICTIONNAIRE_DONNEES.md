@@ -63,7 +63,7 @@ SUP_EMETTEUR ──STA_NM_ANFR──▶ SUP_STATION ──ADM_ID──▶ SUP_EX
 ### 2.2 Arcep — « Mon Réseau Mobile », mesures de qualité de service
 
 - Récupération : API data.gouv.fr → dossier `https://data.arcep.fr/mobile/mesures_qualite_arcep/` → un sous-dossier par année. `collect.py` prend **l'année la plus récente qui a la Métropole** (en novembre 2026 : `2025/Metropole/`, car `2026` n'a que l'outre-mer) → `data_raw/arcep/2025_QoS_Metropole_data_habitations.csv` (93 Mo)
-- Mise à jour : annuelle (campagne 2025 : 354 282 tests, 1 614 communes, juillet 2025)
+- Mise à jour : annuelle (campagne 2025 : 354 282 tests, 1 614 communes)
 - Format : séparateur à détecter (`sep=None`), **encodage `latin-1`**, décimale `,`
 - Une ligne = **un test réalisé sur le terrain**
 
