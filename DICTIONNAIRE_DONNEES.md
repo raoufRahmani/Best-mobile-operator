@@ -125,6 +125,8 @@ Colonnes gardées par `clean.py` : `operator`, `latitude_start`, `longitude_star
 ## 3. Les fichiers produits par le pipeline (dossier `data/`, dans le dépôt Git)
 
 Les fichiers sont écrits d'abord sous un nom temporaire puis renommés : l'appli ne lit jamais un fichier à moitié écrit.
+Juste avant, l'ancienne version est copiée dans `archived/` (ex. `archived/2026-11-12_20-30_sites.csv.gz`).
+Les chemins de tous ces fichiers sont définis dans `config.py`.
 Les CSV sont compressés en gzip (sans date dans l'en-tête : mêmes données = même fichier, donc pas de faux changement dans Git).
 
 | Fichier | Produit par | Taille |
@@ -270,4 +272,5 @@ Les mesures et la couverture Arcep utilisées sont, elles aussi, celles de la M�
 - **Dossiers** :
   - `data_raw/` = brut téléchargé, **temporaire** (supprimé après nettoyage, jamais sur GitHub) ;
   - `data/` = fichiers produits par le pipeline, **envoyés sur GitHub** (~27 Mo) pour qu'un clone démarre sans rien télécharger ;
-  - `log/` = un journal par passage du pipeline (`run.sh`), jamais sur GitHub.
+  - `archived/` = les anciennes versions des fichiers de `data/`, datées, jamais sur GitHub ;
+  - `log/` = un journal par passage du pipeline + `webapp.log` pour l'appli (`run.sh`), jamais sur GitHub.

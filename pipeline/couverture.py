@@ -1,15 +1,17 @@
+"""
+couverture.py — la couverture 4G Arcep en grille
+Les cartes Arcep (3 Go de polygones) sont transformées en une grille de cases de 100 m :
+1 case = 1 octet qui contient le niveau des 4 opérateurs (2 bits chacun). Résultat : ~20 Mo.
+Utilisé par le pipeline (vers_grille, assembler) et par l'appli (couverture_autour).
+"""
 import time
-from pathlib import Path
 import numpy as np
 import pyogrio
 from pyproj import Transformer
 from rasterio.features import rasterize
 from rasterio.transform import from_origin
-from adresse import geocoder
+from config import GRILLE
 
-# Les cartes Arcep (3 Go de polygones) sont transformées en une grille de cases de 100 m :
-# 1 case = 1 octet qui contient le niveau des 4 opérateurs (2 bits chacun). Résultat : ~20 Mo.
-GRILLE = Path("data/couverture_4g.npz")
 X0, Y0, X1, Y1, PAS = 99_000, 6_046_000, 1_243_000, 7_111_000, 100    # France métropolitaine en Lambert-93
 LARGEUR, HAUTEUR = (X1 - X0) // PAS, (Y1 - Y0) // PAS
 
@@ -60,6 +62,7 @@ def couverture_autour(lat, lon):
 
 
 if __name__ == "__main__":
+    from webapp.adresse import geocoder
     lieu = geocoder("8 rue du port nanterre")
     debut = time.time()
     for operateur, niveau in couverture_autour(lieu["latitude"], lieu["longitude"]).items():

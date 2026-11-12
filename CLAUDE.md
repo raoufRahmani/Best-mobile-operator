@@ -19,7 +19,8 @@
 - Repo : https://github.com/eliamosef/mosef_app — « Student Profiler ».
 - Fonctionnement : Google Form → téléchargement du Google Sheet (`curl`) → pandas → NLP spaCy → page Flask.
 - Structure : `data_collector/` → `data_integrator/` → `data_processor/` → `webapp/`, orchestrés par des scripts bash dans `bin/` (pipeline **en boucle**, logs dans `log/`, archivage du brut), + un `Dockerfile`.
-- **On n'a pas copié son code, on a gardé sa démarche** : étapes séparées, script bash, boucle, logs, Docker, déploiement.
+- **On n'a pas copié son code, on a gardé sa démarche** : étapes séparées (un dossier par rôle + README), fichier de configuration, script bash, boucle, logs (pipeline + webapp), archivage, Docker, déploiement.
+- Ce qu'on a adapté : on archive les données **préparées** (quelques Mo), pas le brut (1,5 Go par version) ; on ne télécharge que les nouvelles versions (lui retélécharge en permanence) ; le score est calculé en direct car il dépend de l'adresse ; un seul `run.sh` pour local et Docker (lui a `run.sh` + `run-local.sh`).
 
 ---
 
@@ -67,19 +68,24 @@ Arcep couverture (trim.)┘   (si nouvelle   (temporaire,  (+ couverture.py     
                              version)       supprimé)     pour la grille)       dans Git)   + API Adresse en direct
 ```
 
+**Structure calquée sur l'appli du prof** (réorganisée le 12/11/2026) : un dossier par rôle avec son README, un fichier de configuration, un dossier d'archives, un log par composant.
+On lance toujours **depuis la racine** : `bash run.sh`, ou à la main `python -m pipeline.collect`, `python -m pipeline.clean`, `python -m webapp.app` (sinon `import config` échoue).
+
 | Fichier | Rôle |
 |---|---|
-| `collect.py` | Interroge l'API data.gouv.fr / les pages Arcep, ne télécharge **que les nouvelles versions** (mémoire : `data/derniere_version.json`). Supprime tout de suite `SUP_BANDE` et `SUP_ANTENNE` (inutiles). Couverture : un opérateur à la fois (télécharger → extraire → grille → supprimer). `forcer=True` sert au notebook |
-| `clean.py` | ANFR : filtre 4 opérateurs + 4G/5G + métropole, convertit les positions → `sites.csv.gz`. Arcep : garde 6 colonnes → `mesures.csv.gz`. Écriture atomique (fichier `.tmp` puis `os.replace`), gzip sans date (`mtime=0`). Supprime le brut ensuite |
-| `couverture.py` | Polygones Arcep → grille de cases de 100 m (rasterio), 4 opérateurs × 2 bits dans 1 octet par case. Lit le niveau à un point (0,03 ms) |
-| `adresse.py` | Géocodage (`geocoder`) et suggestions (`chercher_adresses`) via l'API Adresse |
-| `antennes_proches.py` | Distance de haversine ; antennes à moins d'1 km ; tests Arcep à moins de 2 km, **lissés** avec la moyenne nationale (`K = 20`) |
-| `score.py` | Notes de 0 à 1 et score pondéré : 30 % couverture 4G, 30 % tests réussis, 20 % débit, 10 % 5G 3500 MHz, 10 % proximité |
-| `app.py` | Flask, port 8501 : `/` (page), `/api/adresses` (suggestions), `/api/score` (verdict + classement + antennes). Relit les données quand leur date change. Ouvre le navigateur au lancement |
-| `templates/index.html`, `static/style.css`, `static/app.js` | L'interface : HTML/CSS/JS, carte Leaflet (fond CARTO), design sombre bleu/violet (police Geist) |
-| `run.sh` | Trouve Python (`python`, `python3` ou `py`) ; lance le pipeline en boucle **en arrière-plan** (1 passage tout de suite, puis toutes les 24 h, un log par passage dans `log/`) ; lance l'appli au premier plan. Ctrl+C arrête tout |
+| `config.py` | La configuration (équivalent du `collector.conf` du prof) : adresses des sources, dossiers (`data_raw/`, `data/`, `archived/`), fichiers préparés, port |
+| `pipeline/archive.py` | `archiver(chemin)` : copie l'ancienne version d'un fichier de `data/` dans `archived/<date>_<nom>` avant qu'il soit remplacé (appelé par `clean.py` et `collect.py`) |
+| `pipeline/collect.py` | Interroge l'API data.gouv.fr / les pages Arcep, ne télécharge **que les nouvelles versions** (mémoire : `data/derniere_version.json`). Supprime tout de suite `SUP_BANDE` et `SUP_ANTENNE` (inutiles). Couverture : un opérateur à la fois (télécharger → extraire → grille → supprimer). `forcer=True` sert au notebook |
+| `pipeline/clean.py` | ANFR : filtre 4 opérateurs + 4G/5G + métropole, convertit les positions → `sites.csv.gz`. Arcep : garde 6 colonnes → `mesures.csv.gz`. Écriture atomique (fichier `.tmp` puis `os.replace`), gzip sans date (`mtime=0`). Supprime le brut ensuite |
+| `pipeline/couverture.py` | Polygones Arcep → grille de cases de 100 m (rasterio), 4 opérateurs × 2 bits dans 1 octet par case. Lit le niveau à un point (0,03 ms) |
+| `webapp/adresse.py` | Géocodage (`geocoder`) et suggestions (`chercher_adresses`) via l'API Adresse |
+| `webapp/antennes_proches.py` | Distance de haversine ; antennes à moins d'1 km ; tests Arcep à moins de 2 km, **lissés** avec la moyenne nationale (`K = 20`) |
+| `webapp/score.py` | Notes de 0 à 1 et score pondéré : 30 % couverture 4G, 30 % tests réussis, 20 % débit, 10 % 5G 3500 MHz, 10 % proximité |
+| `webapp/app.py` | Flask, port 8501 : `/` (page), `/api/adresses` (suggestions), `/api/score` (verdict + classement + antennes). Relit les données quand leur date change. Ouvre le navigateur au lancement |
+| `webapp/templates/index.html`, `webapp/static/style.css`, `webapp/static/app.js` | L'interface : HTML/CSS/JS, carte Leaflet (fond CARTO), design sombre bleu/violet (police Geist) |
+| `run.sh` | Trouve Python (`python`, `python3` ou `py`) ; lance le pipeline en boucle **en arrière-plan** (1 passage tout de suite, puis toutes les 24 h, un log par passage dans `log/`) ; lance l'appli au premier plan (messages affichés **et** gardés dans `log/webapp.log` grâce à `tee`). Ctrl+C arrête tout |
 | `Dockerfile` | `python:3.14-slim`, installe `requirements.txt`, copie le projet, `EXPOSE 8501`, `CMD ["bash", "run.sh"]` |
-| `.gitignore` / `.dockerignore` | `.venv/`, `data_raw/`, `log/`, `__pycache__/`, fichiers `.tmp` (+ `.git/` et `*.ipynb` pour Docker). **`data/` n'est pas ignoré** |
+| `.gitignore` / `.dockerignore` | `.venv/`, `data_raw/`, `log/`, `archived/`, `__pycache__/`, fichiers `.tmp` (+ `.git/` et `*.ipynb` pour Docker). **`data/` n'est pas ignoré** |
 | `.gitattributes` | `*.sh text eol=lf` (sinon bash plante dans Linux) ; `*.gz` et `*.npz` en binaire |
 
 Nanterre (8 rue du Port), résultat de référence : SFR 90, Bouygues 89, Free 86, Orange 79 → « prends SFR », conseil RED by SFR.
@@ -138,7 +144,8 @@ Nanterre (8 rue du Port), résultat de référence : SFR 90, Bouygues 89, Free 8
 ## 8. Où on en est (12/11/2026)
 
 **Fait ✅**
-- Pipeline complet : `collect.py` → `clean.py` (+ `couverture.py`), avec mémoire des versions et suppression du brut.
+- Pipeline complet : `pipeline/collect.py` → `pipeline/clean.py` (+ `couverture.py`), avec mémoire des versions, suppression du brut et archivage des anciennes versions.
+- Structure alignée sur l'appli du prof : `pipeline/` et `webapp/` (chacun avec son README), `config.py`, `archived/`, `log/webapp.log`.
 - Score à l'adresse (couverture + mesures lissées + antennes) et interface Flask/HTML/CSS/JS avec carte.
 - `run.sh` (boucle 24 h + logs + appli), `Dockerfile`, image Docker Hub.
 - Données préparées dans Git : `git clone` + `pip install -r requirements.txt` + `bash run.sh` suffit, la page s'ouvre toute seule.

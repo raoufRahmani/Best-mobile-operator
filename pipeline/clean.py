@@ -5,16 +5,19 @@ data/sites.csv.gz   = 1 ligne par site × opérateur × techno × fréquence (Fr
 data/mesures.csv.gz = 1 ligne par test Arcep.
 Les fichiers de data/ sont dans le dépôt Git : un clone n'a rien à télécharger.
 Une source n'est traitée que si collect.py vient d'en télécharger une nouvelle version ; le brut est ensuite supprimé.
+L'ancienne version de chaque fichier est rangée dans archived/.
+Lancement, depuis la racine du projet : python -m pipeline.clean
 """
 import os
 import shutil
-from pathlib import Path
 import pandas as pd
+from config import BRUT, SITES, MESURES
+from pipeline.archive import archiver
 
-ANFR = Path("data_raw/anfr")
-SORTIE = Path("data/sites.csv.gz")
-ARCEP = Path("data_raw/arcep")
-SORTIE_MESURES = Path("data/mesures.csv.gz")
+ANFR = BRUT / "anfr"
+SORTIE = SITES
+ARCEP = BRUT / "arcep"
+SORTIE_MESURES = MESURES
 
 
 def enregistrer(df, chemin):
@@ -22,7 +25,10 @@ def enregistrer(df, chemin):
     chemin.parent.mkdir(parents=True, exist_ok=True)
     temporaire = chemin.with_suffix(".tmp")
     df.to_csv(temporaire, index=False, compression={"method": "gzip", "mtime": 0})
+    archiver(chemin)                                     # l'ancienne version part dans archived/
     os.replace(temporaire, chemin)
+
+
 # Les 4 opérateurs mobiles (ADM_ID dans SUP_EXPLOITANT)
 OPERATEURS = {"6": "Bouygues", "23": "Orange", "137": "SFR", "240": "Free"}
 

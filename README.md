@@ -70,23 +70,33 @@ Toutes les données sont ouvertes, et elles sont récupérées automatiquement v
 
 ---
 
-## Le pipeline
+## L'architecture
 
 ```
-collect.py  →  clean.py  →  app.py
+pipeline/collect.py  →  pipeline/clean.py  →  data/  →  webapp/app.py
+   (télécharger)           (nettoyer)        (27 Mo)     (le site)
 ```
 
-| Fichier | Rôle |
-|---|---|
-| `collect.py` | Télécharge une source seulement si elle a publié une nouvelle version (mémoire : `data/derniere_version.json`) |
-| `clean.py` | Nettoie et assemble (4 opérateurs, 4G/5G, France métropolitaine) dans `data/*.csv.gz`, puis supprime les fichiers bruts |
-| `adresse.py` | Transforme une adresse en coordonnées GPS |
-| `antennes_proches.py` | Antennes et mesures Arcep autour d'un point |
-| `couverture.py` | Transforme les cartes de couverture 4G (3 Go) en une grille de 100 m (21 Mo), et lit le niveau à un point |
-| `score.py` | Combine tout en un score et un verdict |
-| `app.py` + `templates/` + `static/` | L'interface (Flask + HTML/CSS/JS) |
-| `run.sh` | Démarre l'appli tout de suite et lance le pipeline toutes les 24 h en arrière-plan (logs dans `log/`). L'appli recharge les données toute seule quand elles changent |
-| `Dockerfile` | Emballe le tout dans une image Docker |
+```
+├── run.sh            lance tout : le pipeline en boucle (arrière-plan) + l'appli
+├── config.py         la configuration : adresses des sources, chemins, port
+├── pipeline/         préparer les données (toutes les 24 h)
+│   ├── collect.py      télécharge seulement les nouvelles versions
+│   ├── clean.py        nettoie → data/*.csv.gz, puis supprime le brut
+│   ├── couverture.py   cartes de couverture (3 Go) → grille de 100 m (21 Mo)
+│   └── archive.py      range l'ancienne version des fichiers dans archived/
+├── webapp/           l'appli web (Flask)
+│   ├── app.py          la page + les routes /api/...
+│   ├── adresse.py      adresse → GPS
+│   ├── antennes_proches.py, score.py   le calcul du verdict
+│   └── templates/, static/             HTML, CSS, JS
+├── data/             les données préparées (dans le dépôt)
+├── log/              les logs : un par passage du pipeline + webapp.log
+├── archived/         les anciennes versions de data/
+└── Dockerfile        emballe le tout dans une image Docker
+```
+
+Chaque dossier a son propre README. L'appli recharge les données toute seule quand le pipeline les met à jour.
 
 Pour comprendre les données : [`01_exploration.ipynb`](01_exploration.ipynb) (la première exploration, faite avant d'écrire `clean.py`) et [`DICTIONNAIRE_DONNEES.md`](DICTIONNAIRE_DONNEES.md) (chaque source, colonne et code, et le détail du score).
 
