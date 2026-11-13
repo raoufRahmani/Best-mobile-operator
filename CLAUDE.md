@@ -81,10 +81,11 @@ On lance toujours **depuis la racine** : `bash run.sh`, ou à la main `python -m
 | `webapp/adresse.py` | Géocodage (`geocoder`) et suggestions (`chercher_adresses`) via l'API Adresse |
 | `webapp/antennes_proches.py` | Distance de haversine ; antennes à moins d'1 km ; tests Arcep à moins de 2 km, **lissés** avec la moyenne nationale (`K = 20`) |
 | `webapp/score.py` | Notes de 0 à 1 et score pondéré : 30 % couverture 4G, 30 % tests réussis, 20 % débit, 10 % 5G 3500 MHz, 10 % proximité |
-| `webapp/app.py` | Flask, port 8501 : `/` (page), `/api/adresses` (suggestions), `/api/score` (verdict + classement + antennes). Relit les données quand leur date change. Ouvre le navigateur au lancement |
+| `webapp/app.py` | Flask, port 8501 : `/` (page), `/api/adresses` (suggestions), `/api/score` (verdict + classement + antennes). Relit les données quand leur date change. Servie par **waitress** (vrai serveur, Windows/Mac/Linux), une ligne de log par requête. Ouvre le navigateur seulement s'il y a un écran (Windows, Mac, Linux avec bureau). Port : `PORT=8600 bash run.sh` |
 | `webapp/templates/index.html`, `webapp/static/style.css`, `webapp/static/app.js` | L'interface : HTML/CSS/JS, carte Leaflet (fond CARTO), design sombre bleu/violet (police Geist) |
-| `install.sh` | À lancer une fois après le clone (comme le `install.sh` du prof) : trouve Python, `pip install -r requirements.txt`, crée `log/` et `archived/` |
-| `run.sh` | Trouve Python (`python`, `python3` ou `py`) ; lance le pipeline en boucle **en arrière-plan** (1 passage tout de suite, puis toutes les 24 h, un log par passage dans `log/`) ; lance l'appli au premier plan (messages affichés **et** gardés dans `log/webapp.log` grâce à `tee`). Ctrl+C arrête tout |
+| `install.sh` | À lancer une fois après le clone (comme le `install.sh` du prof) : crée l'environnement **`.venv`** (obligatoire sur Linux récent et Mac Homebrew, qui refusent `pip install` hors environnement), y installe `requirements.txt`, crée `log/` et `archived/`. Messages clairs si Python manque, est trop vieux, si `python3-venv` manque (Debian/Ubuntu) ou sur Windows ARM |
+| `bin/trouver_python.sh` | Partagé par `install.sh` et `run.sh` : prend le Python de `.venv` (`bin/` ou `Scripts/`), sinon `python3.14`… `python3`, `python`, `py -3.x`, en exigeant **Python 3.12 à 3.14** (numpy/pyproj/rasterio ≥ 3.12 ; des dépendances de py7zr n'existent pas encore en 3.15) |
+| `run.sh` | Se place dans le dossier du projet (`cd "$(dirname "$0")"`), trouve Python via `bin/trouver_python.sh` ; lance le pipeline en boucle **en arrière-plan** (1 passage tout de suite, puis toutes les 24 h, un log par passage dans `log/`) ; lance l'appli au premier plan (messages affichés **et** gardés dans `log/webapp.log` grâce à `tee`). Ctrl+C arrête tout |
 | `Dockerfile` | `python:3.14-slim`, installe `requirements.txt`, copie le projet, `EXPOSE 8501`, `CMD ["bash", "run.sh"]` |
 | `.gitignore` / `.dockerignore` | `.venv/`, `data_raw/`, `log/`, `archived/`, `__pycache__/`, fichiers `.tmp` (+ `.git/` et `*.ipynb` pour Docker). **`data/` n'est pas ignoré** |
 | `.gitattributes` | `*.sh text eol=lf` (sinon bash plante dans Linux) ; `*.gz` et `*.npz` en binaire |
@@ -123,13 +124,16 @@ Nanterre (8 rue du Port), résultat de référence : SFR 90, Bouygues 89, Free 8
 | Erreur | Solution |
 |---|---|
 | `$'\r': command not found` dans le conteneur | `.gitattributes` avec `*.sh text eol=lf` |
-| `python: command not found` (Ubuntu, ou Windows avec seulement `py`) | Image `python:3.x-slim` ; `install.sh` et `run.sh` cherchent `python`, `python3` puis `py` |
+| `python: command not found` (Ubuntu, ou Windows avec seulement `py`) | `bin/trouver_python.sh` essaie tous les noms (`python3.x`, `python3`, `python`, `py -3.x`) |
+| `error: externally-managed-environment` au `pip install` (Ubuntu 23+, Debian 12, Mac Homebrew) | Installer dans un `.venv` : c'est ce que fait `install.sh` |
+| `pip install` échoue avec Python 3.11 ou 3.15 | Il faut Python 3.12 à 3.14 : `install.sh` le vérifie |
+| Windows ARM : `pyogrio` ne s'installe pas | Installer la version x64 de Python |
 | Docker Desktop « Virtualization support not detected » | `wsl --install` en admin, redémarrer |
 | L'appli tourne mais la page ne s'ouvre pas | Oubli du `-p 8501:8501`, port fermé sur le serveur, ou port 8501 déjà pris en local |
 | `Repository not found` au `git clone` | Le dépôt est privé : ajouter la personne comme collaboratrice |
 | Push refusé (`fetch first`) | Quelqu'un a modifié sur GitHub (ex. README) : `git pull --rebase origin master` puis `git push` |
 | 404 sur `last/Metropole/` (Arcep) | L'Arcep a réorganisé ses dossiers : `collect.py` parcourt les années |
-| Ajouter une ligne à un fichier sans saut de ligne final | Les 2 lignes se collent : vérifier la fin du fichier avant d'ajouter |
+| Ajouter une ligne à un fichier sans saut de ligne final | Les 2 lignes se collent (arrivé 3 fois : `.gitignore`, `.gitattributes`, `requirements.txt`) : vérifier la fin du fichier avant d'ajouter |
 
 ---
 
@@ -167,3 +171,4 @@ Nanterre (8 rue du Port), résultat de référence : SFR 90, Bouygues 89, Free 8
 - Modifications **minimales et ciblées** du code existant, pas de réécriture complète.
 - Commits : **pas de ligne `Co-Authored-By: Claude`**, aucune mention de Claude dans les messages de commit ou de PR.
 - Environnement : Windows, VS Code, Git Bash, Python 3.14, Docker Desktop (WSL 2), PC ~8 Go de RAM.
+- **Le projet doit marcher partout** : Windows (Git Bash), Mac (bash 3.2 !), Linux (Ubuntu serveur, sans écran), Docker. Testé le 13/11/2026 : Windows (clone neuf), Ubuntu 24.04 (Python 3.12), bash 3.2 ; refus propre de Python 3.11 et d'Ubuntu sans `python3-venv`.

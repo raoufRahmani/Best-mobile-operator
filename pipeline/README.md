@@ -16,7 +16,7 @@ Les adresses des sources et les chemins des fichiers sont dans `config.py`, à l
 
 Automatique avec `bash run.sh` (un log par passage dans `log/`).
 
-À la main, **depuis la racine du projet** :
+À la main, **depuis la racine du projet**, avec le Python de `.venv` (`.venv/bin/python` sous Mac et Linux, `.venv/Scripts/python` sous Windows) à la place de `python` :
 
 ```bash
 python -m pipeline.collect

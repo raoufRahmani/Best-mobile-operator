@@ -16,7 +16,7 @@ Lit les fichiers préparés par le pipeline (`data/`) et les relit tout seul qua
 
 Automatique avec `bash run.sh` : port 8501, la page s'ouvre toute seule, log dans `log/webapp.log`.
 
-À la main, **depuis la racine du projet** :
+À la main, **depuis la racine du projet**, avec le Python de `.venv` (`.venv/bin/python` sous Mac et Linux, `.venv/Scripts/python` sous Windows) à la place de `python` :
 
 ```bash
 python -m webapp.app
