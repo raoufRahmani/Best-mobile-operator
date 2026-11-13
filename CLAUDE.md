@@ -83,6 +83,7 @@ On lance toujours **depuis la racine** : `bash run.sh`, ou à la main `python -m
 | `webapp/score.py` | Notes de 0 à 1 et score pondéré : 30 % couverture 4G, 30 % tests réussis, 20 % débit, 10 % 5G 3500 MHz, 10 % proximité |
 | `webapp/app.py` | Flask, port 8501 : `/` (page), `/api/adresses` (suggestions), `/api/score` (verdict + classement + antennes). Relit les données quand leur date change. Ouvre le navigateur au lancement |
 | `webapp/templates/index.html`, `webapp/static/style.css`, `webapp/static/app.js` | L'interface : HTML/CSS/JS, carte Leaflet (fond CARTO), design sombre bleu/violet (police Geist) |
+| `install.sh` | À lancer une fois après le clone (comme le `install.sh` du prof) : trouve Python, `pip install -r requirements.txt`, crée `log/` et `archived/` |
 | `run.sh` | Trouve Python (`python`, `python3` ou `py`) ; lance le pipeline en boucle **en arrière-plan** (1 passage tout de suite, puis toutes les 24 h, un log par passage dans `log/`) ; lance l'appli au premier plan (messages affichés **et** gardés dans `log/webapp.log` grâce à `tee`). Ctrl+C arrête tout |
 | `Dockerfile` | `python:3.14-slim`, installe `requirements.txt`, copie le projet, `EXPOSE 8501`, `CMD ["bash", "run.sh"]` |
 | `.gitignore` / `.dockerignore` | `.venv/`, `data_raw/`, `log/`, `archived/`, `__pycache__/`, fichiers `.tmp` (+ `.git/` et `*.ipynb` pour Docker). **`data/` n'est pas ignoré** |
@@ -122,7 +123,7 @@ Nanterre (8 rue du Port), résultat de référence : SFR 90, Bouygues 89, Free 8
 | Erreur | Solution |
 |---|---|
 | `$'\r': command not found` dans le conteneur | `.gitattributes` avec `*.sh text eol=lf` |
-| `python: command not found` (Ubuntu, ou Windows avec seulement `py`) | Image `python:3.x-slim` ; `run.sh` cherche `python`, `python3` puis `py` ; `py -m pip install -r requirements.txt` |
+| `python: command not found` (Ubuntu, ou Windows avec seulement `py`) | Image `python:3.x-slim` ; `install.sh` et `run.sh` cherchent `python`, `python3` puis `py` |
 | Docker Desktop « Virtualization support not detected » | `wsl --install` en admin, redémarrer |
 | L'appli tourne mais la page ne s'ouvre pas | Oubli du `-p 8501:8501`, port fermé sur le serveur, ou port 8501 déjà pris en local |
 | `Repository not found` au `git clone` | Le dépôt est privé : ajouter la personne comme collaboratrice |
@@ -148,7 +149,7 @@ Nanterre (8 rue du Port), résultat de référence : SFR 90, Bouygues 89, Free 8
 - Structure alignée sur l'appli du prof : `pipeline/` et `webapp/` (chacun avec son README), `config.py`, `archived/`, `log/webapp.log`.
 - Score à l'adresse (couverture + mesures lissées + antennes) et interface Flask/HTML/CSS/JS avec carte.
 - `run.sh` (boucle 24 h + logs + appli), `Dockerfile`, image Docker Hub.
-- Données préparées dans Git : `git clone` + `pip install -r requirements.txt` + `bash run.sh` suffit, la page s'ouvre toute seule.
+- Données préparées dans Git : `git clone` + `bash install.sh` + `bash run.sh` suffit, la page s'ouvre toute seule.
 - Le binôme a cloné et lancé l'appli sur son PC.
 - Documentation : `README.md`, `DICTIONNAIRE_DONNEES.md`, `01_exploration.ipynb` à jour.
 
