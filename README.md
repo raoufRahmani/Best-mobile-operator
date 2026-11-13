@@ -27,13 +27,22 @@ Puis ouvrir **http://localhost:8501**.
 ```bash
 git clone https://github.com/raoufRahmani/Best-mobile-operator.git
 cd Best-mobile-operator
-bash install.sh     # une seule fois : trouve Python, installe les librairies, crée log/ et archived/
+bash install.sh     # une seule fois : crée l'environnement .venv et y installe les librairies
 bash run.sh         # lance l'appli + le pipeline
 ```
 
-La page s'ouvre toute seule dans le navigateur (**http://localhost:8501**).
+La page s'ouvre toute seule dans le navigateur (**http://localhost:8501**). Sur un serveur sans écran, elle ne s'ouvre pas : on va soi-même sur `http://<adresse du serveur>:8501`.
 
-Sous Windows, les scripts `.sh` se lancent depuis **Git Bash**.
+**Ce qu'il faut avant :** Git et **Python 3.12, 3.13 ou 3.14**.
+
+| Système | Où taper les commandes | Installer Python |
+|---|---|---|
+| Windows | **Git Bash** (installé avec [Git](https://git-scm.com)), pas PowerShell | [python.org](https://www.python.org/downloads/), cocher « Add python.exe to PATH ». PC à processeur ARM : prendre la version « 64-bit » |
+| Mac | Terminal | [python.org](https://www.python.org/downloads/) ou `brew install python@3.13` (le `python3` d'Apple est trop vieux) |
+| Linux (Ubuntu, Debian) | Terminal | `sudo apt install python3 python3-venv git` |
+
+`install.sh` vérifie la version de Python et explique quoi faire si quelque chose manque.
+Port déjà utilisé ? `PORT=8600 bash run.sh`.
 
 ---
 
@@ -78,7 +87,8 @@ pipeline/collect.py  →  pipeline/clean.py  →  data/  →  webapp/app.py
 ```
 
 ```
-├── install.sh        installe tout, une seule fois après le clone
+├── install.sh        installe tout dans .venv, une seule fois après le clone
+├── bin/              trouver_python.sh : trouve un Python 3.12–3.14 (Windows, Mac, Linux)
 ├── run.sh            lance tout : le pipeline en boucle (arrière-plan) + l'appli
 ├── config.py         la configuration : adresses des sources, chemins, port
 ├── pipeline/         préparer les données (toutes les 24 h)

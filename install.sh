@@ -34,6 +34,10 @@ esac
 $PYTHON -m pip --version > /dev/null 2>&1 || $PYTHON -m ensurepip --upgrade > /dev/null   # .venv sans pip (ex. créé par uv)
 if ! $PYTHON -m pip install -r requirements.txt; then
     echo "Échec de l'installation des librairies"
+    if [ "$($PYTHON -c 'import platform, sys; print(sys.platform, platform.machine())')" = "win32 ARM64" ]; then
+        echo "PC Windows à processeur ARM : installe la version « Windows installer (64-bit) » de Python,"
+        echo "puis supprime le dossier .venv et relance : bash install.sh"
+    fi
     exit 1
 fi
 
