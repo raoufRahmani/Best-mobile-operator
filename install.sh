@@ -17,6 +17,7 @@ fi
 if [ ! -d .venv ]; then
     echo "Création de l'environnement .venv avec $($PYTHON --version)"
     if ! $PYTHON -m venv .venv; then
+        rm -rf .venv                  # on ne laisse pas un .venv à moitié créé
         echo "Impossible de créer .venv. Sous Debian/Ubuntu : sudo apt install python3-venv"
         exit 1
     fi
