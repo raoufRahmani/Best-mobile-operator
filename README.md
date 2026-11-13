@@ -27,13 +27,13 @@ Puis ouvrir **http://localhost:8501**.
 ```bash
 git clone https://github.com/raoufRahmani/Best-mobile-operator.git
 cd Best-mobile-operator
-pip install -r requirements.txt
-bash run.sh
+bash install.sh     # une seule fois : trouve Python, installe les librairies, crée log/ et archived/
+bash run.sh         # lance l'appli + le pipeline
 ```
 
 La page s'ouvre toute seule dans le navigateur (**http://localhost:8501**).
 
-Sous Windows, `run.sh` se lance depuis **Git Bash**. Si `pip` n'est pas reconnu, utilise `py -m pip install -r requirements.txt`.
+Sous Windows, les scripts `.sh` se lancent depuis **Git Bash**.
 
 ---
 
@@ -78,6 +78,7 @@ pipeline/collect.py  →  pipeline/clean.py  →  data/  →  webapp/app.py
 ```
 
 ```
+├── install.sh        installe tout, une seule fois après le clone
 ├── run.sh            lance tout : le pipeline en boucle (arrière-plan) + l'appli
 ├── config.py         la configuration : adresses des sources, chemins, port
 ├── pipeline/         préparer les données (toutes les 24 h)
