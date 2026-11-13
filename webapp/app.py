@@ -3,6 +3,8 @@ app.py — l'appli web (Flask) : la page + les routes /api/... qui renvoient le 
 Lancement, depuis la racine du projet : python -m webapp.app
 """
 import math
+import os
+import sys
 import threading
 import webbrowser
 import pandas as pd
@@ -93,6 +95,10 @@ def score():
 
 if __name__ == "__main__":
     donnees()                                    # lecture au démarrage, pas à la 1re recherche
-    # Ouvre la page dans le navigateur une fois le serveur prêt (sans effet dans Docker ou sur un serveur)
-    threading.Timer(1.5, webbrowser.open, [f"http://localhost:{PORT}"]).start()
+    # Ouvre la page dans le navigateur une fois le serveur prêt, seulement s'il y a un écran :
+    # Windows, Mac, ou Linux avec un bureau. Pas sur un serveur ni dans Docker.
+    ecran = sys.platform in ("win32", "darwin") or os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")
+    if ecran:
+        threading.Timer(1.5, webbrowser.open, [f"http://localhost:{PORT}"]).start()
+    print(f"Appli prête : http://localhost:{PORT}")
     app.run(host="0.0.0.0", port=PORT)
