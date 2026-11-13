@@ -1,17 +1,17 @@
 #!/bin/bash
 # run.sh : l'appli tout de suite (les données sont dans le dépôt) + le pipeline en boucle en arrière-plan
+# Marche sous Windows (Git Bash), Mac, Linux et dans Docker.
 
+cd "$(dirname "$0")" || exit 1   # on travaille toujours depuis le dossier du projet
 export PYTHONIOENCODING=utf-8
-export PYTHONUNBUFFERED=1   # les messages arrivent tout de suite dans les logs
-INTERVALLE=86400            # temps entre 2 passages, en secondes (86400 = 24 h)
+export PYTHONUNBUFFERED=1        # les messages arrivent tout de suite dans les logs
+INTERVALLE=86400                 # temps entre 2 passages, en secondes (86400 = 24 h)
 mkdir -p log archived
 
-# Le nom de Python change selon l'installation : python, python3, ou py (Windows)
-for nom in python python3 py; do
-    if $nom --version > /dev/null 2>&1; then PYTHON=$nom; break; fi
-done
+# Le Python de .venv (créé par install.sh), sinon celui de l'ordinateur (ex. dans Docker)
+source bin/trouver_python.sh
 if [ -z "$PYTHON" ]; then
-    echo "Python introuvable : installe-le depuis https://www.python.org (cocher « Add python.exe to PATH »)"
+    echo "Python 3.12 à 3.14 introuvable : lance d'abord « bash install.sh »"
     exit 1
 fi
 

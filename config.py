@@ -4,6 +4,7 @@ config.py — la configuration du projet, au même endroit
 D'où viennent les données, où elles sont rangées, sur quel port tourne l'appli :
 pour changer un réglage, on le change ici, pas dans le code.
 """
+import os
 from pathlib import Path
 
 # ---------- Les sources
@@ -27,4 +28,4 @@ GRILLE = DONNEES / "couverture_4g.npz"           # couverture 4G (Arcep)
 MEMO = DONNEES / "derniere_version.json"         # versions déjà téléchargées
 
 # ---------- L'appli
-PORT = 8501
+PORT = int(os.environ.get("PORT", 8501))       # changeable sans toucher au code : PORT=8600 bash run.sh

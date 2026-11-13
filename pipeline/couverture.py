@@ -51,7 +51,8 @@ def couverture_autour(lat, lon):
     if not GRILLE.exists():
         return {operateur: "Données absentes" for operateur in CODES.values()}
     if _date != GRILLE.stat().st_mtime:                 # relue seulement si le pipeline l'a mise à jour
-        _grille, _date = np.load(GRILLE)["grille"], GRILLE.stat().st_mtime
+        with np.load(GRILLE) as fichier:                # « with » : le fichier est refermé tout de suite
+            _grille, _date = fichier["grille"], GRILLE.stat().st_mtime
 
     x, y = VERS_L93.transform(lon, lat)
     ligne, colonne = int((Y1 - y) // PAS), int((x - X0) // PAS)
