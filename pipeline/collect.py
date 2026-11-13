@@ -49,6 +49,8 @@ def collect_anfr(forcer=False):
     for inutile in ["SUP_BANDE.txt", "SUP_ANTENNE.txt"]:      # 235 Mo dont clean.py ne se sert pas
         (dossier / inutile).unlink(missing_ok=True)
     ecrire_memo("anfr", a_jour)
+    # Le mois de la version (le titre finit par « novembre 2026 ») : affiché sur la page
+    ecrire_memo("anfr_mois", plus_recent(ressources, TITRES_ANFR[0])["title"].removeprefix(TITRES_ANFR[0]).strip())
     print("ANFR OK")
 
 
