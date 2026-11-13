@@ -9,6 +9,7 @@ import threading
 import webbrowser
 import pandas as pd
 from flask import Flask, jsonify, render_template, request
+from waitress import serve
 from config import SITES, MESURES, PORT
 from webapp.score import score_adresse
 from webapp.antennes_proches import distance_km
@@ -36,6 +37,13 @@ def donnees():
 def propre(valeur):
     """NaN -> None, pour que le JSON reste valide."""
     return None if isinstance(valeur, float) and math.isnan(valeur) else valeur
+
+
+@app.after_request
+def journal(reponse):
+    """Une ligne par requête dans le log (log/webapp.log), comme le serveur de développement de Flask."""
+    print(f"{request.remote_addr} {request.method} {request.full_path.rstrip('?')} {reponse.status_code}")
+    return reponse
 
 
 @app.route("/")
@@ -101,4 +109,6 @@ if __name__ == "__main__":
     if ecran:
         threading.Timer(1.5, webbrowser.open, [f"http://localhost:{PORT}"]).start()
     print(f"Appli prête : http://localhost:{PORT}")
-    app.run(host="0.0.0.0", port=PORT)
+    # waitress : un vrai serveur web (le serveur intégré à Flask n'est fait que pour développer).
+    # Il marche sous Windows, Mac et Linux. threads=8 : plusieurs visiteurs en même temps.
+    serve(app, host="0.0.0.0", port=PORT, threads=8)
