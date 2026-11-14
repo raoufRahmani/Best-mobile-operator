@@ -123,8 +123,10 @@ function radar(data) {
   const centre = [data.latitude, data.longitude];
   if (!carte) {
     carte = L.map("carte", { scrollWheelZoom: false });
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-      { attribution: "© OpenStreetMap © CARTO", maxZoom: 19 }).addTo(carte);
+    // Fond de carte : Plan IGN (Géoplateforme), gratuit et sans clé (CARTO exige maintenant une clé)
+    L.tileLayer("https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2"
+      + "&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/png&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}",
+      { attribution: "© IGN Géoplateforme", maxZoom: 19 }).addTo(carte);
   }
   carte.eachLayer((c) => { if (!(c instanceof L.TileLayer)) carte.removeLayer(c); });
   carte.setView(centre, 15);
