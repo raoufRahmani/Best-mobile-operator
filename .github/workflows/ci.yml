@@ -1,0 +1,55 @@
+# CI/CD : à chaque push (ou pull request) sur master, GitHub lance ces étapes sur un serveur Linux.
+#   1) tests   : installe les librairies et lance pytest
+#   2) docker  : construit l'image, la démarre et vérifie qu'elle répond sur /sante,
+#                puis la publie sur Docker Hub (seulement sur master, si les secrets sont configurés)
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - run: python -m pytest -v
+
+  docker:
+    needs: tests                      # seulement si les tests sont passés
+    runs-on: ubuntu-latest
+    env:
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Construire l'image
+        run: docker build -t raoufrhm/best-mobile-operator:latest .
+
+      - name: Vérifier que le conteneur démarre et répond
+        run: |
+          docker run -d --name essai -p 8501:8501 raoufrhm/best-mobile-operator:latest
+          for i in $(seq 1 30); do
+            curl -fs http://localhost:8501/sante && exit 0
+            sleep 2
+          done
+          docker logs essai
+          exit 1
+
+      - name: Se connecter à Docker Hub
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push' && env.DOCKERHUB_TOKEN != ''
+        uses: docker/login-action@v3
+        with:
+          username: raoufrhm
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Publier l'image sur Docker Hub
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push' && env.DOCKERHUB_TOKEN != ''
+        run: docker push raoufrhm/best-mobile-operator:latest

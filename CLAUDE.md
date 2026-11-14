@@ -86,7 +86,10 @@ On lance toujours **depuis la racine** : `bash run.sh`, ou à la main `python -m
 | `install.sh` | À lancer une fois après le clone (comme le `install.sh` du prof) : crée l'environnement **`.venv`** (obligatoire sur Linux récent et Mac Homebrew, qui refusent `pip install` hors environnement), y installe `requirements.txt`, crée `log/` et `archived/`. Messages clairs si Python manque, est trop vieux, si `python3-venv` manque (Debian/Ubuntu) ou sur Windows ARM |
 | `bin/trouver_python.sh` | Partagé par `install.sh` et `run.sh` : prend le Python de `.venv` (`bin/` ou `Scripts/`), sinon `python3.14`… `python3`, `python`, `py -3.x`, en exigeant **Python 3.12 à 3.14** (numpy/pyproj/rasterio ≥ 3.12 ; des dépendances de py7zr n'existent pas encore en 3.15) |
 | `run.sh` | Se place dans le dossier du projet (`cd "$(dirname "$0")"`), trouve Python via `bin/trouver_python.sh` ; lance le pipeline en boucle **en arrière-plan** (1 passage tout de suite, puis toutes les 24 h, un log par passage dans `log/`) ; lance l'appli au premier plan (messages affichés **et** gardés dans `log/webapp.log` grâce à `tee`). Ctrl+C arrête tout |
-| `Dockerfile` | `python:3.14-slim`, installe `requirements.txt`, copie le projet, `EXPOSE 8501`, `CMD ["bash", "run.sh"]` |
+| `Dockerfile` | `python:3.14-slim`, installe `requirements.txt`, copie le projet, `EXPOSE 8501`, `HEALTHCHECK` sur `/sante` toutes les 30 s (avec Python, pas curl), `CMD ["bash", "run.sh"]` |
+| `webapp/app.py` → `/sante` | Supervision : 200 `{"statut": "ok"}` si les 3 fichiers de `data/` sont là, sinon 503. Pas écrit dans le log (Docker l'appelle toutes les 30 s) |
+| `tests/` + `pytest.ini` + `requirements-dev.txt` | 12 tests pytest (calculs + routes Flask), sans Internet (géocodage remplacé par un faux). `python -m pytest` depuis la racine |
+| `.github/workflows/ci.yml` | CI/CD GitHub Actions à chaque push/PR sur `master` : tests → `docker build` → conteneur démarré et `/sante` vérifié → `docker push` sur Docker Hub seulement si le secret `DOCKERHUB_TOKEN` existe |
 | `.gitignore` / `.dockerignore` | `.venv/`, `data_raw/`, `log/`, `archived/`, `__pycache__/`, fichiers `.tmp` (+ `.git/` et `*.ipynb` pour Docker). **`data/` n'est pas ignoré** |
 | `.gitattributes` | `*.sh text eol=lf` (sinon bash plante dans Linux) ; `*.gz` et `*.npz` en binaire |
 
@@ -156,6 +159,7 @@ Nanterre (8 rue du Port), résultat de référence : SFR 90, Bouygues 89, Free 8
 - Données préparées dans Git : `git clone` + `bash install.sh` + `bash run.sh` suffit, la page s'ouvre toute seule.
 - Le binôme a cloné et lancé l'appli sur son PC.
 - Documentation : `README.md`, `DICTIONNAIRE_DONNEES.md`, `01_exploration.ipynb` à jour.
+- (14/11/2026) Tests pytest, CI/CD GitHub Actions, route `/sante` + `HEALTHCHECK` Docker. Fond de carte CARTO (qui exige maintenant une clé) remplacé par le Plan IGN.
 
 **À faire ⏳**
 1. Demander au prof s'il fournit un serveur ; sinon **déployer sur Azure for Students** pour avoir une URL permanente à lui donner.
