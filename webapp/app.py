@@ -10,7 +10,7 @@ import webbrowser
 import pandas as pd
 from flask import Flask, jsonify, render_template, request
 from waitress import serve
-from config import SITES, MESURES, PORT
+from config import SITES, MESURES, GRILLE, PORT
 from webapp.score import score_adresse
 from webapp.antennes_proches import distance_km
 from webapp.adresse import chercher_adresses
@@ -42,13 +42,22 @@ def propre(valeur):
 @app.after_request
 def journal(reponse):
     """Une ligne par requête dans le log (log/webapp.log), comme le serveur de développement de Flask."""
-    print(f"{request.remote_addr} {request.method} {request.full_path.rstrip('?')} {reponse.status_code}")
+    if request.path != "/sante":                 # Docker appelle /sante toutes les 30 s : pas dans le log
+        print(f"{request.remote_addr} {request.method} {request.full_path.rstrip('?')} {reponse.status_code}")
     return reponse
 
 
 @app.route("/")
 def accueil():
     return render_template("index.html")
+
+
+@app.route("/sante")
+def sante():
+    """Supervision : l'appli répond-elle, et ses données sont-elles là ? (utilisée par le HEALTHCHECK de Docker)"""
+    fichiers = {f.name: f.exists() for f in (SITES, MESURES, GRILLE)}
+    ok = all(fichiers.values())
+    return jsonify({"statut": "ok" if ok else "données manquantes", "fichiers": fichiers}), 200 if ok else 503
 
 
 @app.route("/api/adresses")

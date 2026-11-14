@@ -4,3 +4,4 @@ log/
 archived/
 __pycache__/
 data/*.tmp*
+.pytest_cache/

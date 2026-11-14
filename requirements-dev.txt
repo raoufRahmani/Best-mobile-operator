@@ -1,0 +1,3 @@
+# Les librairies de l'appli + celles pour les tests (pas besoin dans l'image Docker)
+-r requirements.txt
+pytest==9.2.0
