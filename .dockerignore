@@ -5,3 +5,4 @@ archived/
 __pycache__/
 .git/
 *.ipynb
+.pytest_cache/

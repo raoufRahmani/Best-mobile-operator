@@ -16,5 +16,9 @@ COPY . .
 # 5) Dire que l'appli utilise le port 8501
 EXPOSE 8501
 
-# 6) La commande lancée au démarrage du conteneur
+# 6) Supervision : toutes les 30 s, Docker vérifie que l'appli répond sur /sante
+#    (« docker ps » affiche alors healthy ou unhealthy). Python suffit, pas besoin de curl.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8501/sante', timeout=4)"
+
+# 7) La commande lancée au démarrage du conteneur
 CMD ["bash", "run.sh"]
