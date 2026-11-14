@@ -46,6 +46,24 @@ Port déjà utilisé ? `PORT=8600 bash run.sh`.
 
 ---
 
+## Tests, CI/CD et supervision
+
+```bash
+.venv/Scripts/python -m pytest     # Windows (Mac / Linux : .venv/bin/python -m pytest)
+```
+Les tests (`tests/`) vérifient les calculs (distance, positions ANFR, grille de couverture, lissage des mesures, poids du score) et l'appli (page, `/sante`, `/api/score`). Ils n'ont pas besoin d'Internet : l'API Adresse est remplacée par une fausse. Il faut d'abord `pip install -r requirements-dev.txt` (ajoute pytest).
+
+**CI/CD (GitHub Actions, `.github/workflows/ci.yml`)** : à chaque push sur `master`, GitHub
+1. lance les tests ;
+2. s'ils passent, construit l'image Docker, la démarre et vérifie qu'elle répond sur `/sante` ;
+3. publie l'image sur Docker Hub, seulement si le secret `DOCKERHUB_TOKEN` est configuré (GitHub → Settings → Secrets and variables → Actions).
+
+Le résultat est visible dans l'onglet **Actions** du dépôt.
+
+**Supervision** : `/sante` répond `{"statut": "ok"}` si l'appli tourne et que ses 3 fichiers de données sont là (sinon code 503). Docker l'appelle toutes les 30 s (`HEALTHCHECK` du `Dockerfile`) : `docker ps` affiche `healthy` ou `unhealthy`.
+
+---
+
 ## Comment ça marche
 
 1. **L'adresse devient un point GPS**, grâce à l'API Adresse de l'État.
@@ -104,6 +122,8 @@ pipeline/collect.py  →  pipeline/clean.py  →  data/  →  webapp/app.py
 ├── data/             les données préparées (dans le dépôt)
 ├── log/              les logs : un par passage du pipeline + webapp.log
 ├── archived/         les anciennes versions de data/
+├── tests/            les tests automatiques (pytest)
+├── .github/workflows/ la CI/CD : tests + image Docker à chaque push
 └── Dockerfile        emballe le tout dans une image Docker
 ```
 
