@@ -149,6 +149,12 @@ def clean():
 # Arcep : les tests de terrain -> data/mesures.csv.gz
 # On passe de 93 Mo à 1,4 Mo en ne gardant que ce dont le score a besoin.
 # =====================================================================
+# Les colonnes utiles. Le format change selon l'année : jusqu'en 2025, « Result » dit si le test a réussi ;
+# en 2026 cette colonne a disparu, on utilise « page web chargée en moins de 10 s » et « vidéo de qualité correcte ».
+COLONNES_ARCEP = {"operator", "latitude_start", "longitude_start", "protocole", "bitrate_dl",
+                  "Result", "loaded_in_less_10_secondes", "quality_correct"}
+
+
 def clean_arcep():
     # 1) Lire le fichier Arcep (seulement les colonnes utiles)
     #    sep=None : pandas devine tout seul le séparateur ; decimal="," : virgules françaises ;
@@ -156,7 +162,7 @@ def clean_arcep():
     fichier = sorted(ARCEP.glob("*data_habitations.csv"))[-1]   # le plus récent s'il y en a plusieurs
     m = pd.read_csv(
         fichier, sep=None, engine="python", encoding="latin-1", decimal=",",
-        usecols=["operator", "latitude_start", "longitude_start", "protocole", "Result", "bitrate_dl"],
+        usecols=lambda c: c in COLONNES_ARCEP,
     )
 
     # 2) Noms en français, comme sites.csv
@@ -168,7 +174,12 @@ def clean_arcep():
     })
 
     # 3) Le test a-t-il réussi ? (True / False) -> le taux de réussite sera simplement la moyenne
-    m["reussi"] = m["Result"] == "Success"
+    if "Result" in m:                                    # format jusqu'en 2025
+        m["reussi"] = m["Result"] == "Success"
+    else:                                                # format 2026 : plus de colonne « Result »
+        # Pages web : chargée en moins de 10 s (en 2025, c'était exactement la définition de « Success ») ;
+        # vidéos : qualité correcte. Téléchargements, envois, latence : pas d'info -> vide (seul le débit sert)
+        m["reussi"] = m["loaded_in_less_10_secondes"].fillna(m["quality_correct"])
 
     # 4) On garde les tests avec une position, et on enregistre
     m = m.dropna(subset=["latitude", "longitude"])
@@ -177,7 +188,7 @@ def clean_arcep():
 
     # Petit résumé pour vérifier (dans le log) : nombre de tests, taux de réussite et débit par opérateur
     print("Mesures Arcep :", len(m))
-    print(m.groupby("operateur").agg(nb_tests=("reussi", "size"),
+    print(m.groupby("operateur").agg(nb_tests=("reussi", "count"),
                                      taux_reussite=("reussi", "mean"),
                                      nb_debits=("debit", "count"),
                                      debit_median=("debit", "median")))

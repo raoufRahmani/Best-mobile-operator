@@ -41,7 +41,7 @@ def mesures_autour(mesures, lat, lon, rayon_km=2):
     # 1) Résultats locaux
     resume = (
         proches.groupby("operateur")
-               .agg(nb_tests=("reussi", "size"),
+               .agg(nb_tests=("reussi", "count"),           # tests dont on connaît le résultat
                     taux_reussite=("reussi", "mean"),
                     nb_debits=("debit", "count"),
                     debit_median=("debit", "median"))

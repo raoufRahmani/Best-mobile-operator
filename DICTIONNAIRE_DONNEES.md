@@ -2,7 +2,7 @@
 
 > Référentiel des tables, des variables et des codes utilisés dans le projet.
 > À garder à jour à chaque changement du pipeline.
-> Dernière mise à jour : 12/11/2026 (données ANFR de novembre 2026, mesures Arcep 2025, couverture Arcep T2 2026).
+> Dernière mise à jour : 12/11/2026 (données ANFR de novembre 2026, mesures Arcep 2026 (depuis le 18/11/2026), couverture Arcep T2 2026).
 
 ---
 
@@ -63,7 +63,7 @@ SUP_EMETTEUR ──STA_NM_ANFR──▶ SUP_STATION ──ADM_ID──▶ SUP_EX
 ### 2.2 Arcep — « Mon Réseau Mobile », mesures de qualité de service
 
 - Récupération : API data.gouv.fr → dossier `https://data.arcep.fr/mobile/mesures_qualite_arcep/` → un sous-dossier par année. `collect.py` prend **l'année la plus récente qui a la Métropole** (en novembre 2026 : `2025/Metropole/`, car `2026` n'a que l'outre-mer) → `data_raw/arcep/2025_QoS_Metropole_data_habitations.csv` (93 Mo)
-- Mise à jour : annuelle (campagne 2025 : 354 282 tests, 1 614 communes)
+- Mise à jour : annuelle (campagne 2025 : 354 282 tests, 1 614 communes ; **campagne 2026 : 338 823 tests**, utilisée depuis le 18/11/2026)
 - Format : séparateur à détecter (`sep=None`), **encodage `latin-1`**, décimale `,`
 - Une ligne = **un test réalisé sur le terrain**
 
@@ -74,7 +74,9 @@ SUP_EMETTEUR ──STA_NM_ANFR──▶ SUP_STATION ──ADM_ID──▶ SUP_EX
 | `latitude_start`, `longitude_start` | Position du test | Degrés décimaux |
 | `date_start` | Date du test | `jj/mm/aaaa` |
 | `protocole` | Type de test | `WEB` (72 %), `DOWNLOAD`, `UPLOAD`, `STREAM`, `ICMP` (ping), `ULH` |
-| `Result` | Résultat du test | `Success`, `Traffic Fail`, `TimeOut`, `Drop`, `Setup Fail` |
+| `Result` | Résultat du test (**jusqu'en 2025 seulement**, absent du fichier 2026) | `Success`, `Traffic Fail`, `TimeOut`, `Drop`, `Setup Fail` |
+| `loaded_in_less_10_secondes` | Tests `WEB` : page chargée en moins de 10 s (en 2025, identique à `Result == "Success"` pour les 253 260 tests web) | `1` / `0` |
+| `quality_correct` | Tests `STREAM` : vidéo de qualité correcte | `1` / `0` |
 | `situation` | Lieu du test | `indoor`, `outdoor`, `incar` (⚠️ majuscules mélangées) |
 | `zone` | Type de territoire | `Zones denses`, `Zones intermediaires`, `Zones rurales`, `Zones touristiques` |
 | `rsrp`, `rsrq` | Puissance et qualité du signal | Remplis à ~91 % |
@@ -82,7 +84,7 @@ SUP_EMETTEUR ──STA_NM_ANFR──▶ SUP_STATION ──ADM_ID──▶ SUP_EX
 | `bitrate_dl` | Débit descendant, en **Mb/s** (médiane ~143, max ~994) | Tests `DOWNLOAD` uniquement |
 | `techno_start` | Mode du téléphone | Toujours `5G` en 2025 → **ne permet pas de comparer 4G et 5G** |
 
-Colonnes gardées par `clean.py` : `operator`, `latitude_start`, `longitude_start`, `protocole`, `Result`, `bitrate_dl`.
+Colonnes gardées par `clean.py` : `operator`, `latitude_start`, `longitude_start`, `protocole`, `bitrate_dl`, et pour le résultat `Result` (≤ 2025) ou `loaded_in_less_10_secondes` + `quality_correct` (2026).
 
 ### 2.3 Arcep — cartes de couverture 4G théorique
 
@@ -171,7 +173,7 @@ Sites par opérateur (novembre 2026) :
 | `latitude` | décimal | `latitude_start` | Position du test |
 | `longitude` | décimal | `longitude_start` | Position du test |
 | `protocole` | texte | `protocole` | `WEB`, `DOWNLOAD`, `UPLOAD`, `STREAM`, `ICMP`, `ULH` |
-| `reussi` | vrai / faux | `Result` | `True` si `Result == "Success"` |
+| `reussi` | vrai / faux / vide | `Result` (≤ 2025) ; `loaded_in_less_10_secondes` ou `quality_correct` (2026) | ≤ 2025 : `Result == "Success"`. 2026 : page web chargée en < 10 s, ou vidéo de qualité correcte ; **vide** pour les téléchargements, envois et latence (pas d'info : seul le débit sert). `nb_tests` ne compte que les tests dont le résultat est connu |
 | `debit` | décimal (Mb/s) | `bitrate_dl` | Débit descendant ; rempli seulement pour les tests `DOWNLOAD` (33 384 tests) |
 
 ### 3.3 `data/couverture_4g.npz` — la couverture 4G en grille

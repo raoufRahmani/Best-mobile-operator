@@ -95,7 +95,7 @@ On lance toujours **depuis la racine** : `bash run.sh`, ou à la main `bash pipe
 | `.gitignore` / `.dockerignore` | `.venv/`, `data_raw/`, `log/`, `archived/`, `__pycache__/`, fichiers `.tmp` (+ `.git/` et `*.ipynb` pour Docker). **`data/` n'est pas ignoré** |
 | `.gitattributes` | `*.sh text eol=lf` (sinon bash plante dans Linux) ; `*.gz` et `*.npz` en binaire |
 
-Nanterre (8 rue du Port), résultat de référence : SFR 90, Bouygues 89, Free 86, Orange 79 → « prends SFR », conseil RED by SFR.
+Nanterre (8 rue du Port), résultat de référence (mesures Arcep 2026, depuis le 18/11/2026) : Free 99, SFR 95, Bouygues 94, Orange 86 → « prends Free ». (Avec les mesures 2025 : SFR 90, Bouygues 89, Free 86, Orange 79.)
 
 ---
 
@@ -162,7 +162,7 @@ Nanterre (8 rue du Port), résultat de référence : SFR 90, Bouygues 89, Free 8
 - Le binôme a cloné et lancé l'appli sur son PC.
 - Documentation : `README.md`, `DICTIONNAIRE_DONNEES.md`, `01_exploration.ipynb` à jour.
 - (18/11/2026) Extraction en bash : `pipeline/extraction.sh` (+ `grille.py`) remplace `collect.py` dans `run.sh` ; résultats vérifiés identiques (mêmes fichiers choisis, sites.csv.gz identique à l'octet, grille identique au bit). rasterio 1.5.1 (macOS 14).
-- ⚠️ L'Arcep a publié la campagne **2026 Métropole** avec un **nouveau format** (plus de colonne `Result`) : `clean.py` échoue dessus, l'appli garde les mesures 2025. À adapter.
+- (18/11/2026) Mesures Arcep **2026** intégrées. Nouveau format sans colonne `Result` : `clean.py` lit les 2 formats (2026 : page web < 10 s ou vidéo correcte ; vide pour les téléchargements). Le taux national passe de 83 % à 94 % (les échecs de « débit < 210 Mb/s » de 2025 ne comptent plus).
 - (14/11/2026) Tests pytest, CI/CD GitHub Actions, route `/sante` + `HEALTHCHECK` Docker. Fond de carte CARTO (qui exige maintenant une clé) remplacé par le Plan IGN.
 
 **À faire ⏳**

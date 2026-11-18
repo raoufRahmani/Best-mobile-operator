@@ -1,7 +1,7 @@
 {
   "anfr": "https://static.data.gouv.fr/resources/donnees-sur-les-installations-radioelectriques-de-plus-de-5-watts-1/20261106-083007/20261031-export-etalab-data.zip https://static.data.gouv.fr/resources/donnees-sur-les-installations-radioelectriques-de-plus-de-5-watts-1/20261106-083015/20261031-export-etalab-ref.zip",
   "anfr_mois": "novembre 2026",
-  "arcep": "https://data.arcep.fr/mobile/mesures_qualite_arcep/2025/Metropole/2025_QoS_Metropole_data_habitations.csv",
+  "arcep": "https://data.arcep.fr/mobile/mesures_qualite_arcep/2026/Metropole/2026_QoS_Metropole_data_habitations.csv",
   "couverture": [
     "https://data.arcep.fr/mobile/couvertures_theoriques/last/Metropole/00_Metropole/2026_T2_couv_Metropole_BOUY_4G_data.gpkg.7z",
     "https://data.arcep.fr/mobile/couvertures_theoriques/last/Metropole/00_Metropole/2026_T2_couv_Metropole_FREE_4G_data.gpkg.7z",
