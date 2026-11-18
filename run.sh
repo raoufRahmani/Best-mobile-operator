@@ -19,12 +19,12 @@ fi
 trap 'kill 0' EXIT
 
 # --- Le pipeline, rangé dans une fonction ---
-# collect.py ne télécharge que si une source a publié une nouvelle version,
+# extraction.sh (bash + curl) ne télécharge que si une source a publié une nouvelle version,
 # clean.py ne traite que ce qui vient d'être téléchargé puis supprime le brut.
 pipeline() {
     LOG="log/pipeline_$(date +%Y-%m-%d_%H-%M).log"
     echo "=== Début : $(date) ===" >> "$LOG"
-    $PYTHON -m pipeline.collect >> "$LOG" 2>&1 \
+    PYTHON="$PYTHON" bash pipeline/extraction.sh >> "$LOG" 2>&1 \
         && $PYTHON -m pipeline.clean >> "$LOG" 2>&1 \
         || echo "!!! Échec du pipeline" >> "$LOG"
     echo "=== Fin : $(date) ===" >> "$LOG"

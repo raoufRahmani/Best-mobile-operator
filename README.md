@@ -39,7 +39,7 @@ La page s'ouvre toute seule dans le navigateur (**http://localhost:8501**). Sur 
 |---|---|---|
 | Windows | **Git Bash** (installé avec [Git](https://git-scm.com)), pas PowerShell | [python.org](https://www.python.org/downloads/), cocher « Add python.exe to PATH ». PC à processeur ARM : prendre la version « 64-bit » |
 | Mac | Terminal | [python.org](https://www.python.org/downloads/) ou `brew install python@3.13` (le `python3` d'Apple est trop vieux) |
-| Linux (Ubuntu, Debian) | Terminal | `sudo apt install python3 python3-venv git` |
+| Linux (Ubuntu, Debian) | Terminal | `sudo apt install python3 python3-venv git curl unzip` |
 
 `install.sh` vérifie la version de Python et explique quoi faire si quelque chose manque.
 Port déjà utilisé ? `PORT=8600 bash run.sh`.
@@ -100,7 +100,7 @@ Toutes les données sont ouvertes, et elles sont récupérées automatiquement v
 ## L'architecture
 
 ```
-pipeline/collect.py  →  pipeline/clean.py  →  data/  →  webapp/app.py
+pipeline/extraction.sh  →  pipeline/clean.py  →  data/  →  webapp/app.py
    (télécharger)           (nettoyer)        (27 Mo)     (le site)
 ```
 
@@ -110,7 +110,8 @@ pipeline/collect.py  →  pipeline/clean.py  →  data/  →  webapp/app.py
 ├── run.sh            lance tout : le pipeline en boucle (arrière-plan) + l'appli
 ├── config.py         la configuration : adresses des sources, chemins, port
 ├── pipeline/         préparer les données (toutes les 24 h)
-│   ├── collect.py      télécharge seulement les nouvelles versions
+│   ├── extraction.sh   télécharge en bash (curl) seulement les nouvelles versions
+│   ├── grille.py       la partie Python de l'extraction de la couverture (.7z → grille)
 │   ├── clean.py        nettoie → data/*.csv.gz, puis supprime le brut
 │   ├── couverture.py   cartes de couverture (3 Go) → grille de 100 m (21 Mo)
 │   └── archive.py      range l'ancienne version des fichiers dans archived/

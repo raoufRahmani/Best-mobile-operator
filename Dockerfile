@@ -5,8 +5,9 @@ FROM python:3.14-slim
 WORKDIR /app
 
 # 3) Installer les librairies (d'abord, pour profiter du cache)
-#    rasterio a besoin de libexpat1, absente de l'image "slim"
-RUN apt-get update && apt-get install -y --no-install-recommends libexpat1 && rm -rf /var/lib/apt/lists/*
+#    rasterio a besoin de libexpat1 ; l'extraction (pipeline/extraction.sh) a besoin de curl et unzip :
+#    absents de l'image "slim"
+RUN apt-get update && apt-get install -y --no-install-recommends libexpat1 curl unzip && rm -rf /var/lib/apt/lists/*
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 

@@ -23,7 +23,7 @@
 
 ## 2. Les sources brutes
 
-Toutes sont récupérées par `collect.py` dans `data_raw/`, **seulement si une nouvelle version est publiée**
+Toutes sont récupérées par `pipeline/extraction.sh` dans `data_raw/`, **seulement si une nouvelle version est publiée**
 (les versions déjà traitées sont notées dans `data/derniere_version.json`).
 Le brut est supprimé dès qu'il a été nettoyé : `data_raw/` est un dossier temporaire.
 
@@ -105,7 +105,7 @@ Colonnes gardées par `clean.py` : `operator`, `latitude_start`, `longitude_star
 | | `CL` | Couverture limitée |
 | | (pas de zone) | Pas de couverture |
 
-`collect.py` traite un opérateur à la fois (télécharger → extraire → convertir en grille → supprimer), pour ne jamais avoir plus d'~1 Go sur le disque.
+`pipeline/extraction.sh` traite un opérateur à la fois (télécharger → extraire → convertir en grille → supprimer), pour ne jamais avoir plus d'~1 Go sur le disque.
 
 ### 2.4 API Adresse (Géoplateforme IGN) — appelée en direct
 
@@ -133,8 +133,8 @@ Les CSV sont compressés en gzip (sans date dans l'en-tête : mêmes données = 
 |---|---|---|
 | `sites.csv.gz` | `clean.py` (ANFR) | 4,9 Mo |
 | `mesures.csv.gz` | `clean.py` (Arcep mesures) | 1,4 Mo |
-| `couverture_4g.npz` | `collect.py` + `couverture.py` (Arcep couverture) | 21 Mo |
-| `derniere_version.json` | `collect.py` | < 1 Ko |
+| `couverture_4g.npz` | `extraction.sh` + `grille.py` + `couverture.py` (Arcep couverture) | 21 Mo |
+| `derniere_version.json` | `extraction.sh` | < 1 Ko |
 
 ### 3.1 `data/sites.csv.gz` — les antennes
 
@@ -196,11 +196,11 @@ Chercher le niveau à une adresse revient alors à lire une case du tableau (ins
 Niveau lu : `0` = Pas de couverture, `1` = Couverture limitée, `2` = Bonne couverture, `3` = Très bonne couverture.
 Si une case touche plusieurs zones, on garde le meilleur niveau. Précision vérifiée : 79 points sur 80 identiques aux polygones exacts.
 
-### 3.4 `data/derniere_version.json` — la mémoire de `collect.py`
+### 3.4 `data/derniere_version.json` — la mémoire de `extraction.sh`
 
 | Clé | Contenu | Sert à |
 |---|---|---|
-| `anfr` | Identifiants data.gouv.fr des 2 zips ANFR | Retélécharger seulement si l'ANFR publie un nouveau mois |
+| `anfr` | Adresses des 2 zips ANFR les plus récents (séparées par une espace) | Retélécharger seulement si l'ANFR publie un nouveau mois |
 | `arcep` | Adresse du fichier `data_habitations.csv` | Comparer le nom du fichier (l'Arcep déplace parfois ses dossiers sans changer les données) |
 | `couverture` | Adresses des 4 archives de couverture | Retélécharger seulement si un nouveau trimestre est publié |
 

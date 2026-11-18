@@ -4,6 +4,9 @@ Télécharge les données brutes dans data_raw/, seulement si une source a publi
 (les versions déjà traitées sont notées dans data/derniere_version.json).
 Lancement, depuis la racine du projet : python -m pipeline.collect
 
+⚠️ Le pipeline (run.sh) utilise maintenant pipeline/extraction.sh : la même extraction, écrite en bash (curl).
+Ce fichier reste pour le notebook d'exploration (collect_anfr(forcer=True), etc.).
+
 Le principe, pour chacune des 3 sources :
   1. regarder quelle est la dernière version publiée en ligne
   2. la comparer avec celle notée dans le carnet (data/derniere_version.json)

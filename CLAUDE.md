@@ -63,19 +63,21 @@ Points à retenir :
 INTERNET (open data)                      PIPELINE (tâche de fond, toutes les 24 h)                      APPLI
 
 ANFR (mensuel) ───────┐
-Arcep mesures (annuel) ┼─► collect.py ─► data_raw/ ─► clean.py ─────────────► data/ ──► app.py (Flask) ──► navigateur
+Arcep mesures (annuel) ┼─► extraction.sh ► data_raw/ ─► clean.py ─────────────► data/ ──► app.py (Flask) ──► navigateur
 Arcep couverture (trim.)┘   (si nouvelle   (temporaire,  (+ couverture.py      (~27 Mo,    + score.py
                              version)       supprimé)     pour la grille)       dans Git)   + API Adresse en direct
 ```
 
 **Structure calquée sur l'appli du prof** (réorganisée le 12/11/2026) : un dossier par rôle avec son README, un fichier de configuration, un dossier d'archives, un log par composant.
-On lance toujours **depuis la racine** : `bash run.sh`, ou à la main `python -m pipeline.collect`, `python -m pipeline.clean`, `python -m webapp.app` (sinon `import config` échoue).
+On lance toujours **depuis la racine** : `bash run.sh`, ou à la main `bash pipeline/extraction.sh`, `python -m pipeline.clean`, `python -m webapp.app` (sinon `import config` échoue).
 
 | Fichier | Rôle |
 |---|---|
 | `config.py` | La configuration (équivalent du `collector.conf` du prof) : adresses des sources, dossiers (`data_raw/`, `data/`, `archived/`), fichiers préparés, port |
 | `pipeline/archive.py` | `archiver(chemin)` : copie l'ancienne version d'un fichier de `data/` dans `archived/<date>_<nom>` avant qu'il soit remplacé (appelé par `clean.py` et `collect.py`) |
-| `pipeline/collect.py` | Interroge l'API data.gouv.fr / les pages Arcep, ne télécharge **que les nouvelles versions** (mémoire : `data/derniere_version.json`). Supprime tout de suite `SUP_BANDE` et `SUP_ANTENNE` (inutiles). Couverture : un opérateur à la fois (télécharger → extraire → grille → supprimer). `forcer=True` sert au notebook |
+| `pipeline/extraction.sh` | **L'extraction en bash** (demande du prof, 18/11/2026) : curl + grep, même logique et même carnet que `collect.py` (version ANFR notée comme « url_data url_ref », + `anfr_mois` lu dans la date de l'adresse, affiché par la page). Réglages lus dans `config.py` (fonction `conf`). Couverture : un opérateur à la fois, curl puis `python -m pipeline.grille fichier.7z`, puis `--assembler`. Lancé par `run.sh`. Besoin de `curl` et `unzip` (ajoutés au Dockerfile) |
+| `pipeline/grille.py` | Partie Python de l'extraction de la couverture : `.7z` → `<code>.npy` ; `--assembler` → `data/couverture_4g.npz` (écriture atomique + archive) |
+| `pipeline/collect.py` | (n'est plus lancé par `run.sh`, gardé pour le notebook) | Interroge l'API data.gouv.fr / les pages Arcep, ne télécharge **que les nouvelles versions** (mémoire : `data/derniere_version.json`). Supprime tout de suite `SUP_BANDE` et `SUP_ANTENNE` (inutiles). Couverture : un opérateur à la fois (télécharger → extraire → grille → supprimer). `forcer=True` sert au notebook |
 | `pipeline/clean.py` | ANFR : filtre 4 opérateurs + 4G/5G + métropole, convertit les positions → `sites.csv.gz`. Arcep : garde 6 colonnes → `mesures.csv.gz`. Écriture atomique (fichier `.tmp` puis `os.replace`), gzip sans date (`mtime=0`). Supprime le brut ensuite |
 | `pipeline/couverture.py` | Polygones Arcep → grille de cases de 100 m (rasterio), 4 opérateurs × 2 bits dans 1 octet par case. Lit le niveau à un point (0,03 ms) |
 | `webapp/adresse.py` | Géocodage (`geocoder`) et suggestions (`chercher_adresses`) via l'API Adresse |
@@ -135,7 +137,7 @@ Nanterre (8 rue du Port), résultat de référence : SFR 90, Bouygues 89, Free 8
 | L'appli tourne mais la page ne s'ouvre pas | Oubli du `-p 8501:8501`, port fermé sur le serveur, ou port 8501 déjà pris en local |
 | `Repository not found` au `git clone` | Le dépôt est privé : ajouter la personne comme collaboratrice |
 | Push refusé (`fetch first`) | Quelqu'un a modifié sur GitHub (ex. README) : `git pull --rebase origin master` puis `git push` |
-| 404 sur `last/Metropole/` (Arcep) | L'Arcep a réorganisé ses dossiers : `collect.py` parcourt les années |
+| 404 sur `last/Metropole/` (Arcep) | L'Arcep a réorganisé ses dossiers : `extraction.sh` parcourt les années |
 | Ajouter une ligne à un fichier sans saut de ligne final | Les 2 lignes se collent (arrivé 3 fois : `.gitignore`, `.gitattributes`, `requirements.txt`) : vérifier la fin du fichier avant d'ajouter |
 
 ---
@@ -159,6 +161,8 @@ Nanterre (8 rue du Port), résultat de référence : SFR 90, Bouygues 89, Free 8
 - Données préparées dans Git : `git clone` + `bash install.sh` + `bash run.sh` suffit, la page s'ouvre toute seule.
 - Le binôme a cloné et lancé l'appli sur son PC.
 - Documentation : `README.md`, `DICTIONNAIRE_DONNEES.md`, `01_exploration.ipynb` à jour.
+- (18/11/2026) Extraction en bash : `pipeline/extraction.sh` (+ `grille.py`) remplace `collect.py` dans `run.sh` ; résultats vérifiés identiques (mêmes fichiers choisis, sites.csv.gz identique à l'octet, grille identique au bit). rasterio 1.5.1 (macOS 14).
+- ⚠️ L'Arcep a publié la campagne **2026 Métropole** avec un **nouveau format** (plus de colonne `Result`) : `clean.py` échoue dessus, l'appli garde les mesures 2025. À adapter.
 - (14/11/2026) Tests pytest, CI/CD GitHub Actions, route `/sante` + `HEALTHCHECK` Docker. Fond de carte CARTO (qui exige maintenant une clé) remplacé par le Plan IGN.
 
 **À faire ⏳**
