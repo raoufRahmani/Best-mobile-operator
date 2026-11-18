@@ -4,105 +4,176 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Quel opérateur chez moi ?</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'><rect width='26' height='26' rx='8' fill='%230A0B0F'/><rect x='6' y='15' width='3' height='5' rx='1' fill='%23A9B8FF'/><rect x='11.5' y='11' width='3' height='9' rx='1' fill='%23A9B8FF'/><rect x='17' y='6' width='3' height='14' rx='1' fill='%23A9B8FF'/></svg>">
+<meta name="description" content="Tape ton adresse : on compare Orange, SFR, Bouygues Telecom et Free avec les données publiques de l'ANFR et de l'Arcep.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'><rect width='26' height='26' rx='8' fill='%23070B14'/><rect x='6' y='15' width='3' height='5' rx='1' fill='%2322C55E'/><rect x='11.5' y='11' width='3' height='9' rx='1' fill='%2322C55E'/><rect x='17' y='6' width='3' height='14' rx='1' fill='%2322C55E'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/lenis@1.1.13/dist/lenis.css">
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
-<header>
+<a class="aller-contenu" href="#recherche">Aller à la recherche</a>
+
+<!-- ============ En-tête ============ -->
+<header class="entete-site">
   <div class="conteneur">
-    <a class="logo" href="/">
-      <svg width="26" height="26" viewBox="0 0 26 26"><rect width="26" height="26" rx="8" fill="#111418"/><rect x="6" y="15" width="3" height="5" rx="1" fill="#FFE14D"/><rect x="11.5" y="11" width="3" height="9" rx="1" fill="#FFE14D"/><rect x="17" y="6" width="3" height="14" rx="1" fill="#FFE14D"/></svg>
-      Quel opérateur chez moi ?
+    <a class="logo" href="/" aria-label="Quel opérateur chez moi ? Accueil">
+      <span class="logo-signal" aria-hidden="true"><i></i><i></i><i></i></span>
+      Quel opérateur chez moi&nbsp;?
     </a>
-    <nav>
+    <nav aria-label="Navigation principale">
       <a href="#radar">Carte</a>
       <a href="#methode">Méthode</a>
-      <a class="bouton" href="https://www.data.gouv.fr/datasets/mon-reseau-mobile" target="_blank">Données ouvertes</a>
+      <a class="bouton-nav" href="https://github.com/raoufRahmani/Best-mobile-operator" target="_blank" rel="noopener" aria-label="Le code sur GitHub">
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.6 18.3 5 18.3 5c.7 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.2c0 .3.2.7.8.6A11.5 11.5 0 0 0 23.5 12C23.5 5.7 18.3.5 12 .5Z"/></svg>
+        <span class="texte-nav">Le code</span>
+      </a>
     </nav>
   </div>
 </header>
 
-<section class="hero">
-  <div class="ondes" aria-hidden="true"><span></span><span></span><span></span></div>
-  <div class="conteneur">
-    <span class="eyebrow"><i></i>Données ANFR &amp; Arcep · mises à jour automatiquement</span>
-    <h1 class="titre">Tous « le meilleur réseau ».<br><span class="surligne">Mais chez toi ?</span></h1>
-    <p>Tape ton adresse. On regarde les antennes autour et les mesures réelles pour te dire quel opérateur capte vraiment le mieux.</p>
+<main>
+<!-- ============ Bandeau : la recherche ============ -->
+<section class="hero" id="recherche">
+  <div class="hero-fond" aria-hidden="true"></div>
+  <div class="conteneur hero-grille">
+    <div class="hero-texte">
+      <span class="pastille"><i aria-hidden="true"></i>Données à jour{% if fraicheur.antennes %} · antennes de {{ fraicheur.antennes }}{% endif %}</span>
+      <h1>Tous «&nbsp;le meilleur réseau&nbsp;».<br><span class="degrade">Mais chez toi&nbsp;?</span></h1>
+      <p class="chapo">Tape ton adresse. On croise les antennes déclarées, les tests faits sur le terrain et les cartes officielles pour te dire quel opérateur capte vraiment le mieux.</p>
 
-    <form class="form" id="form" autocomplete="off">
-      <input id="adresse" placeholder="Ton adresse, ex. : 8 rue du Port, Nanterre" aria-label="Adresse">
-      <button type="submit">Comparer →</button>
-      <ul class="suggestions" id="suggestions"></ul>
-    </form>
-    <p class="erreur" id="erreur"></p>
+      <form class="recherche" id="form" autocomplete="off" role="search">
+        <label for="adresse" class="label-recherche">Ton adresse</label>
+        <div class="champ">
+          <svg class="icone-champ" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          <input id="adresse" placeholder="ex. : 8 rue du Port, Nanterre" aria-describedby="erreur"
+                 role="combobox" aria-autocomplete="list" aria-controls="suggestions" aria-expanded="false">
+          <button type="submit">Comparer<span aria-hidden="true"> →</span></button>
+        </div>
+        <ul class="suggestions" id="suggestions" role="listbox" aria-label="Suggestions d'adresses"></ul>
+      </form>
+      <p class="erreur" id="erreur" role="alert"></p>
+
+      <div class="exemples" id="exemples">
+        <span>Essayer&nbsp;:</span>
+        <button type="button" data-adresse="8 Rue du Port 92000 Nanterre">Nanterre</button>
+        <button type="button" data-adresse="Place du Capitole 31000 Toulouse">Toulouse</button>
+        <button type="button" data-adresse="Grande Rue 50170 Le Mont-Saint-Michel">Mont-Saint-Michel</button>
+        <button type="button" data-adresse="Rue des Marches 48400 Florac Trois Rivières">Village de Lozère</button>
+      </div>
+    </div>
+
+    <!-- Le radar (inspiré du composant « Radar Effect » de 21st.dev, réécrit en HTML/CSS) -->
+    <div class="radar-hero" aria-hidden="true">
+      <div class="cercles"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="balayage"></div>
+      <span class="blip" style="--c:#FF7900; --x:22%; --y:28%">Orange</span>
+      <span class="blip" style="--c:#E2001A; --x:74%; --y:22%">SFR</span>
+      <span class="blip" style="--c:#0091D5; --x:80%; --y:70%">Bouygues</span>
+      <span class="blip" style="--c:#B4BAC6; --x:18%; --y:74%">Free</span>
+      <span class="centre"><i></i>Toi</span>
+    </div>
+  </div>
+
+  <!-- Les preuves : les vrais volumes de données -->
+  <div class="conteneur">
+    <dl class="preuves">
+      <div><dt>Sites d'antennes</dt><dd>{{ chiffres.sites }}</dd></div>
+      <div><dt>Tests Arcep sur le terrain</dt><dd>{{ chiffres.tests }}</dd></div>
+      <div><dt>Communes couvertes</dt><dd>{{ chiffres.communes }}</dd></div>
+      <div><dt>Précision de la couverture</dt><dd>100&nbsp;m</dd></div>
+    </dl>
   </div>
 </section>
 
-<div class="chargement" id="chargement" hidden>
-  <span class="signal-anime"><i></i><i></i><i></i><i></i></span>
+<!-- ============ Chargement ============ -->
+<div class="chargement" id="chargement" hidden role="status">
+  <span class="signal-anime" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
   Recherche du signal…
 </div>
 
+<!-- ============ Résultats ============ -->
 <div id="resultats" hidden>
-  <section class="resultat">
+  <section class="resultat" aria-labelledby="titre-verdict">
     <div class="conteneur">
-      <div class="entete">
+      <div class="entete-section">
         <div>
           <span class="etiquette">01 · Le verdict</span>
-          <h2 class="titre">Ton téléphone, chez toi, avec…</h2>
+          <h2 id="titre-verdict">Ton téléphone, chez toi, avec…</h2>
         </div>
-        <span id="lieu"></span>
+        <p id="lieu" class="lieu"></p>
       </div>
-      <div class="telephones" id="telephones"></div>
-      <div class="conseil" id="conseil"></div>
+      <div class="verdict" id="conseil"></div>
+      <div class="operateurs" id="telephones"></div>
+      <div class="legende-points">
+        <span>D'où vient le score&nbsp;:</span>
+        <span><i class="p-couverture"></i>Couverture 4G</span>
+        <span><i class="p-reussite"></i>Tests réussis</span>
+        <span><i class="p-debit"></i>Débit</span>
+        <span><i class="p-5g"></i>5G rapide</span>
+        <span><i class="p-proximite"></i>Distance</span>
+        <span><i class="p-perdu"></i>Points perdus</span>
+      </div>
     </div>
   </section>
 
-  <section class="radar" id="radar">
-    <div class="conteneur grille">
+  <section class="radar" id="radar" aria-labelledby="titre-radar">
+    <div class="conteneur grille-radar">
       <div>
         <span class="etiquette">02 · Autour de toi</span>
-        <h2 class="titre">Le radar des antennes</h2>
-        <p>Chaque point est une antenne 4G ou 5G déclarée à l'ANFR. Les cercles marquent 250 m, 500 m et 1 km autour de ton adresse.</p>
-        <div class="filtres" id="filtres"></div>
+        <h2 id="titre-radar">Le radar des antennes</h2>
+        <p>Chaque point est une antenne 4G ou 5G déclarée à l'ANFR (les plus gros sont en 5G). Les cercles marquent 250&nbsp;m, 500&nbsp;m et 1&nbsp;km autour de ton adresse.</p>
+        <div class="filtres" id="filtres" aria-label="Afficher ou cacher un opérateur"></div>
         <div class="distances" id="distances"></div>
       </div>
-      <div id="carte"></div>
+      <div id="carte" role="region" aria-label="Carte des antennes autour de l'adresse"></div>
     </div>
   </section>
 </div>
 
-<section class="methode" id="methode">
+<!-- ============ Méthode ============ -->
+<section class="methode" id="methode" aria-labelledby="titre-methode">
   <div class="conteneur">
     <span class="etiquette">03 · La méthode</span>
-    <h2 class="titre">Comment on calcule le score</h2>
+    <h2 id="titre-methode">Comment on calcule le score</h2>
+    <p class="intro">Cinq critères, chacun noté de 0 à 1, puis une moyenne pondérée. Les mesures réelles pèsent le plus lourd.</p>
     <div class="barre-poids">
-      <div class="arcep fort" style="flex:30"><b>30 %</b>Couverture 4G</div>
-      <div class="arcep fort" style="flex:30"><b>30 %</b>Tests réussis</div>
-      <div class="arcep" style="flex:20"><b>20 %</b>Débit mesuré</div>
-      <div class="anfr" style="flex:10"><b>10 %</b>5G rapide</div>
-      <div class="anfr fort" style="flex:10"><b>10 %</b>Distance</div>
+      <div class="p-couverture" style="flex:30"><b>30 %</b><span>Couverture 4G</span><small>Arcep</small></div>
+      <div class="p-reussite" style="flex:30"><b>30 %</b><span>Tests réussis</span><small>Arcep</small></div>
+      <div class="p-debit" style="flex:20"><b>20 %</b><span>Débit mesuré</span><small>Arcep</small></div>
+      <div class="p-5g" style="flex:10"><b>10 %</b><span>5G rapide</span><small>ANFR</small></div>
+      <div class="p-proximite" style="flex:10"><b>10 %</b><span>Distance</span><small>ANFR</small></div>
     </div>
-    <div class="legende-poids">
-      <span><i class="arcep"></i>Mesures Arcep</span>
-      <span><i class="anfr"></i>Antennes ANFR</span>
-      <span>Peu de tests près de chez toi ? On complète avec la moyenne nationale.</span>
+    <p class="astuce">Peu de tests près de chez toi&nbsp;? On les mélange avec la moyenne nationale&nbsp;: plus il y a de tests, plus le local compte. Sans ça, un seul test raté pourrait faire perdre un opérateur.</p>
+
+    <h3>Les données utilisées</h3>
+    <div class="sources">
+      <div><span>Antennes</span><b>ANFR · {{ fraicheur.antennes or "—" }}</b><small>Publiées chaque mois</small></div>
+      <div><span>Couverture 4G</span><b>Arcep · {{ fraicheur.couverture or "—" }}</b><small>Publiée chaque trimestre</small></div>
+      <div><span>Tests sur le terrain</span><b>Arcep · {{ fraicheur.mesures or "—" }}</b><small>Publiés chaque année</small></div>
+      <div><span>Mise à jour</span><b>Automatique</b><small>Le pipeline vérifie chaque jour s'il y a du nouveau</small></div>
     </div>
-    <p class="limite">Une antenne proche ne garantit pas une bonne réception à l'intérieur (murs, relief). C'est pour ça que le score s'appuie surtout sur les mesures de terrain.</p>
+    <p class="limite">À savoir&nbsp;: une antenne proche ne garantit pas une bonne réception à l'intérieur (murs, relief). Les cartes de couverture ne concernent que la 4G, et l'outre-mer n'est pas pris en compte. Le résultat est une estimation, pas un test sur place.</p>
   </div>
 </section>
+</main>
 
+<!-- ============ Pied de page ============ -->
 <footer>
   <div class="conteneur">
-    <span>Projet M2 MoSEF · Université Paris 1 Panthéon-Sorbonne</span>
-    <span>Sources : ANFR · Arcep · IGN</span>
+    <span>Fait par <b>Aya WIFAK</b> et <b>Abderraouf RAHMANI</b> · M2 MoSEF, Université Paris 1 Panthéon-Sorbonne</span>
+    <span>Sources&nbsp;: ANFR · Arcep · IGN · <a href="https://github.com/raoufRahmani/Best-mobile-operator" target="_blank" rel="noopener">Code sur GitHub</a></span>
   </div>
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="{{ url_for('static', filename='animations.js') }}"></script>
 <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

@@ -81,6 +81,8 @@ def collect_anfr(forcer=False):
 
     # 5) Tout a réussi : on note la version dans le carnet (en dernier)
     ecrire_memo("anfr", a_jour)
+    # Le mois de la version (le titre finit par « novembre 2026 ») : affiché sur la page
+    ecrire_memo("anfr_mois", plus_recent(ressources, TITRES_ANFR[0])["title"].removeprefix(TITRES_ANFR[0]).strip())
     print("ANFR OK")
 
 

@@ -2,16 +2,18 @@
 app.py — l'appli web (Flask) : la page + les routes /api/... qui renvoient le verdict.
 Lancement, depuis la racine du projet : python -m webapp.app
 """
+import json
 import math
 import os
+import re
 import sys
 import threading
 import webbrowser
 import pandas as pd
 from flask import Flask, jsonify, render_template, request
 from waitress import serve
-from config import SITES, MESURES, GRILLE, PORT
-from webapp.score import score_adresse
+from config import SITES, MESURES, GRILLE, MEMO, PORT
+from webapp.score import score_adresse, POIDS
 from webapp.antennes_proches import distance_km
 from webapp.adresse import chercher_adresses
 
@@ -34,6 +36,18 @@ def donnees():
     return _cache["sites"], _cache["mesures"]
 
 
+def fraicheur():
+    """Les versions des données utilisées, lues dans la mémoire du pipeline (affichées sur la page)."""
+    memo = json.loads(MEMO.read_text()) if MEMO.exists() else {}
+    mesures = re.search(r"/(\d{4})/", memo.get("arcep", ""))
+    couverture = re.search(r"(\d{4})_T(\d)", " ".join(memo.get("couverture", [])))
+    return {
+        "antennes": memo.get("anfr_mois"),
+        "couverture": couverture and f"T{couverture.group(2)} {couverture.group(1)}",
+        "mesures": mesures and mesures.group(1),
+    }
+
+
 def propre(valeur):
     """NaN -> None, pour que le JSON reste valide."""
     return None if isinstance(valeur, float) and math.isnan(valeur) else valeur
@@ -49,7 +63,14 @@ def journal(reponse):
 
 @app.route("/")
 def accueil():
-    return render_template("index.html")
+    sites, mesures = donnees()
+    chiffres = {                                  # les vrais volumes des données, affichés sous le titre
+        "sites": sites["site_id"].nunique(),
+        "communes": sites["code_insee"].nunique(),
+        "tests": len(mesures),
+    }
+    return render_template("index.html", fraicheur=fraicheur(),
+                           chiffres={nom: f"{n:,}".replace(",", " ") for nom, n in chiffres.items()})
 
 
 @app.route("/sante")
@@ -85,6 +106,8 @@ def score():
         "nb_sites_4g": int(ligne["nb_sites_4g"]),
         "nb_sites_5g": int(ligne["nb_sites_5g"]),
         "nb_sites_5g_3500": int(ligne["nb_sites_5g_3500"]),
+        # Le détail du score : les points gagnés sur chaque critère (leur somme = le score)
+        "points": {note: round(poids * (propre(ligne[note]) or 0) * 100, 1) for note, poids in POIDS.items()},
     } for nom, ligne in tableau.iterrows()]
 
     # Les antennes autour, 1 point par site (5G si le site a au moins un émetteur 5G)
