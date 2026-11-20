@@ -68,12 +68,12 @@ Le résultat est visible dans l'onglet **Actions** du dépôt.
 
 ## Comment ça marche
 
-1. **L'adresse devient un point GPS**, grâce à l'API Adresse de l'État.
-2. **On regarde ce qu'il y a autour**, pour chacun des 4 opérateurs :
+1. L'adresse devient un point GPS, grâce à l'API Adresse de l'État.
+2. On regarde ce qu'il y a autour, pour chacun des 4 opérateurs :
    - les antennes 4G et 5G à moins d'1 km, et la distance de la plus proche (ANFR) ;
    - les tests réalisés par l'Arcep à moins de 2 km : taux de réussite (page web chargée en moins de 10 s, vidéo de qualité correcte) et débit ;
    - le niveau de couverture 4G annoncé à cette adresse précise (cartes Arcep).
-3. **Chaque critère devient une note de 0 à 1**, puis on fait une moyenne pondérée :
+3. Chaque critère devient une note de 0 à 1, puis on fait une moyenne pondérée :
 
 | Critère | Poids | Source |
 |---|---|---|
@@ -83,7 +83,7 @@ Le résultat est visible dans l'onglet **Actions** du dépôt.
 | Antennes 5G rapide (3500 MHz) à moins d'1 km | 10 % | ANFR |
 | Distance à l'antenne la plus proche | 10 % | ANFR |
 
-**Un détail important :** l'Arcep n'a fait des tests que dans 1 647 communes (mesures 2026). Quand il y a peu de tests près de l'adresse, on ne leur fait pas aveuglément confiance : on les mélange avec la moyenne générale, et plus il y a de tests, plus le local pèse. Sans ça, un seul test raté pouvait suffire à faire perdre un opérateur.
+/!\ Un détail important : l'Arcep n'a fait des tests que dans 1 647 communes (mesures 2026). Quand il y a peu de tests près de l'adresse, on ne leur fait pas aveuglément confiance : on les mélange avec la moyenne générale, et plus il y a de tests, plus le local pèse. Sans ça, un seul test raté pouvait suffire à faire perdre un opérateur.
 
 ---
 
