@@ -1,5 +1,5 @@
 # CI/CD : à chaque push (ou pull request) sur master, GitHub lance ces étapes sur un serveur Linux.
-#   1) tests   : installe les librairies et lance pytest
+#   1) tests   : installe les librairies avec uv et lance pytest
 #   2) docker  : construit l'image, la démarre et vérifie qu'elle répond sur /sante,
 #                puis la publie sur Docker Hub (seulement sur master, si les secrets sont configurés)
 name: CI
@@ -15,12 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v6     # uv installe aussi Python 3.14 (.python-version)
         with:
-          python-version: "3.14"
-          cache: pip
-      - run: pip install -r requirements-dev.txt
-      - run: python -m pytest -v
+          enable-cache: true
+      - run: uv sync --frozen           # librairies + pytest, aux versions de uv.lock
+      - run: uv run pytest -v
 
   docker:
     needs: tests                      # seulement si les tests sont passés
