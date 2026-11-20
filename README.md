@@ -6,6 +6,7 @@ Elle ne se base pas sur la pub des opérateurs, mais sur des données publiques 
 
 > Dans le cadre d'un projet en cours d'Ingénierie du code, M2 MoSEF, Université Paris 1 Panthéon-Sorbonne.
 
+---
 
 ## Lancer l'appli
 
@@ -22,7 +23,7 @@ Puis ouvrir **http://localhost:8501**.
 L'appli démarre directement, les données déjà préparées (~27 Mo) sont dans le dépôt, dans `data/`, il n'y a rien à télécharger. 
 En arrière-plan, le pipeline vérifie chaque jour si l'ANFR ou l'Arcep ont publié une nouvelle version, et ne télécharge que dans ce cas. Le volume `bmo_data` garde ces mises à jour d'un lancement à l'autre.
 
-### Sans Docker
+### B. Sans Docker
 
 ```bash
 git clone https://github.com/raoufRahmani/Best-mobile-operator.git
