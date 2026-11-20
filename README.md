@@ -2,9 +2,9 @@
 
 Tu tapes ton adresse, l'appli te dit quel opérateur mobile capte le mieux **chez toi** : Orange, SFR, Bouygues Telecom ou Free.
 
-Elle ne se base pas sur la pub des opérateurs, mais sur des **données publiques** : les antennes déclarées à l'ANFR, les tests de débit faits sur le terrain par l'Arcep, et les cartes de couverture officielles.
+Elle ne se base pas sur la pub des opérateurs, mais sur des **données publiques** : les antennes déclarées à l'ANFR, les tests faits sur le terrain par l'Arcep (pages web, vidéo, débit), et les cartes de couverture officielles.
 
-> Projet du cours **Initiation au DevOps pour un Data Scientist** — M2 MoSEF, Université Paris 1 Panthéon-Sorbonne.
+> Projet du cours **Initiation au DevOps pour un Data Scientist**, M2 MoSEF, Université Paris 1 Panthéon-Sorbonne.
 
 ---
 
@@ -20,7 +20,7 @@ docker run -p 8501:8501 -v bmo_data:/app/data raoufrhm/best-mobile-operator:late
 
 Puis ouvrir **http://localhost:8501**.
 
-⚡ L'appli démarre **tout de suite** : les données déjà préparées (~27 Mo) sont dans le dépôt, dans `data/`. Rien à télécharger. En arrière-plan, le pipeline vérifie chaque jour si l'ANFR ou l'Arcep ont publié une nouvelle version, et ne télécharge que dans ce cas. Le volume `bmo_data` garde ces mises à jour d'un lancement à l'autre.
+L'appli démarre **tout de suite** : les données déjà préparées (~27 Mo) sont dans le dépôt, dans `data/`. Rien à télécharger. En arrière-plan, le pipeline vérifie chaque jour si l'ANFR ou l'Arcep ont publié une nouvelle version, et ne télécharge que dans ce cas. Le volume `bmo_data` garde ces mises à jour d'un lancement à l'autre.
 
 ### Sans Docker
 
@@ -70,7 +70,7 @@ Le résultat est visible dans l'onglet **Actions** du dépôt.
 1. **L'adresse devient un point GPS**, grâce à l'API Adresse de l'État.
 2. **On regarde ce qu'il y a autour**, pour chacun des 4 opérateurs :
    - les antennes 4G et 5G à moins d'1 km, et la distance de la plus proche (ANFR) ;
-   - les tests réalisés par l'Arcep à moins de 2 km : taux de réussite et débit ;
+   - les tests réalisés par l'Arcep à moins de 2 km : taux de réussite (page web chargée en moins de 10 s, vidéo de qualité correcte) et débit ;
    - le niveau de couverture 4G annoncé à cette adresse précise (cartes Arcep).
 3. **Chaque critère devient une note de 0 à 1**, puis on fait une moyenne pondérée :
 
@@ -82,7 +82,7 @@ Le résultat est visible dans l'onglet **Actions** du dépôt.
 | Antennes 5G rapide (3500 MHz) à moins d'1 km | 10 % | ANFR |
 | Distance à l'antenne la plus proche | 10 % | ANFR |
 
-**Un détail important :** l'Arcep n'a fait des tests que dans environ 1 600 communes. Quand il y a peu de tests près de l'adresse, on ne leur fait pas aveuglément confiance : on les mélange avec la moyenne générale, et plus il y a de tests, plus le local pèse. Sans ça, un seul test raté pouvait suffire à faire perdre un opérateur.
+**Un détail important :** l'Arcep n'a fait des tests que dans 1 647 communes (mesures 2026). Quand il y a peu de tests près de l'adresse, on ne leur fait pas aveuglément confiance : on les mélange avec la moyenne générale, et plus il y a de tests, plus le local pèse. Sans ça, un seul test raté pouvait suffire à faire perdre un opérateur.
 
 ---
 
@@ -130,7 +130,7 @@ pipeline/extraction.sh  →  pipeline/clean.py  →  data/  →  webapp/app.py
 └── Dockerfile        emballe le tout dans une image Docker
 ```
 
-Chaque dossier a son propre README. L'appli recharge les données toute seule quand le pipeline les met à jour.
+`pipeline/` et `webapp/` ont chacun leur README, qui détaille leurs fichiers. L'appli recharge les données toute seule quand le pipeline les met à jour.
 
 Pour comprendre les données : [`01_exploration.ipynb`](01_exploration.ipynb) (la première exploration, faite avant d'écrire `clean.py`) et [`DICTIONNAIRE_DONNEES.md`](DICTIONNAIRE_DONNEES.md) (chaque source, colonne et code, et le détail du score).
 
@@ -139,7 +139,7 @@ Pour comprendre les données : [`01_exploration.ipynb`](01_exploration.ipynb) (l
 ## Limites
 
 - Les cartes de couverture de l'Arcep ne couvrent que la **4G**. La 5G est évaluée à partir des antennes.
-- Les mesures Arcep sont faites dans environ 1 600 communes : ailleurs, le score s'appuie surtout sur les antennes et la couverture.
+- Les mesures Arcep couvrent 1 647 communes : ailleurs, le score s'appuie surtout sur les antennes et la couverture.
 - La France d'outre-mer n'est pas prise en compte.
 - Le résultat est une **estimation** : il ne remplace pas un test sur place avec son propre téléphone.
 
@@ -149,6 +149,5 @@ Pour comprendre les données : [`01_exploration.ipynb`](01_exploration.ipynb) (l
 
 - Aya WIFAK
 - Abderraouf Rahmani
-
 
 Image Docker : [raoufrhm/best-mobile-operator](https://hub.docker.com/r/raoufrhm/best-mobile-operator)
