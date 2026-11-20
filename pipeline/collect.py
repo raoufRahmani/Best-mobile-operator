@@ -18,7 +18,7 @@ Le principe, pour chacune des 3 sources :
 import io, json, os, re, zipfile          # io : fichier en mémoire ; re : chercher des liens dans une page web
 from urllib.parse import urljoin          # assembler une adresse web (dossier + nom de fichier)
 
-# Librairies installées (requirements.txt)
+# Librairies installées (pyproject.toml, avec uv)
 import numpy as np                        # enregistrer la grille de couverture
 import requests                           # télécharger
 import py7zr                              # ouvrir les archives .7z de l'Arcep

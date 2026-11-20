@@ -27,21 +27,22 @@ Puis ouvrir **http://localhost:8501**.
 ```bash
 git clone https://github.com/raoufRahmani/Best-mobile-operator.git
 cd Best-mobile-operator
-bash install.sh     # une seule fois : crée l'environnement .venv et y installe les librairies
+bash install.sh     # une seule fois : uv crée l'environnement .venv et y installe les librairies
 bash run.sh         # lance l'appli + le pipeline
 ```
 
 La page s'ouvre toute seule dans le navigateur (**http://localhost:8501**). Sur un serveur sans écran, elle ne s'ouvre pas : on va soi-même sur `http://<adresse du serveur>:8501`.
 
-**Ce qu'il faut avant :** Git et **Python 3.12, 3.13 ou 3.14**.
+**Ce qu'il faut avant :** Git et **[uv](https://docs.astral.sh/uv/)**, l'outil qui gère l'environnement Python du projet. Pas besoin d'installer Python : uv télécharge lui-même Python 3.14 s'il manque.
 
-| Système | Où taper les commandes | Installer Python |
+| Système | Où taper les commandes | Installer uv |
 |---|---|---|
-| Windows | **Git Bash** (installé avec [Git](https://git-scm.com)), pas PowerShell | [python.org](https://www.python.org/downloads/), cocher « Add python.exe to PATH ». PC à processeur ARM : prendre la version « 64-bit » |
-| Mac | Terminal | [python.org](https://www.python.org/downloads/) ou `brew install python@3.13` (le `python3` d'Apple est trop vieux) |
-| Linux (Ubuntu, Debian) | Terminal | `sudo apt install python3 python3-venv git curl unzip` |
+| Windows | **Git Bash** (installé avec [Git](https://git-scm.com)), pas PowerShell | Dans PowerShell, une fois : `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 \| iex"` |
+| Mac | Terminal | `curl -LsSf https://astral.sh/uv/install.sh \| sh` (ou `brew install uv`) |
+| Linux (Ubuntu, Debian) | Terminal | `curl -LsSf https://astral.sh/uv/install.sh \| sh`, et `sudo apt install git curl unzip` |
 
-`install.sh` vérifie la version de Python et explique quoi faire si quelque chose manque.
+Les librairies et leurs versions exactes sont dans `pyproject.toml` et `uv.lock`. `install.sh` fait `uv sync` et explique quoi faire si uv manque.
+Ajouter une librairie : `uv add <nom>` (met à jour `pyproject.toml` et `uv.lock`, à commiter).
 Port déjà utilisé ? `PORT=8600 bash run.sh`.
 
 ---
@@ -49,9 +50,9 @@ Port déjà utilisé ? `PORT=8600 bash run.sh`.
 ## Tests, CI/CD et supervision
 
 ```bash
-.venv/Scripts/python -m pytest     # Windows (Mac / Linux : .venv/bin/python -m pytest)
+uv run pytest
 ```
-Les tests (`tests/`) vérifient les calculs (distance, positions ANFR, grille de couverture, lissage des mesures, poids du score) et l'appli (page, `/sante`, `/api/score`). Ils n'ont pas besoin d'Internet : l'API Adresse est remplacée par une fausse. Il faut d'abord `pip install -r requirements-dev.txt` (ajoute pytest).
+Les tests (`tests/`) vérifient les calculs (distance, positions ANFR, grille de couverture, lissage des mesures, poids du score) et l'appli (page, `/sante`, `/api/score`). Ils n'ont pas besoin d'Internet : l'API Adresse est remplacée par une fausse. pytest est installé par `bash install.sh` (groupe `dev` de `pyproject.toml`).
 
 **CI/CD (GitHub Actions, `.github/workflows/ci.yml`)** : à chaque push sur `master`, GitHub
 1. lance les tests ;
@@ -105,8 +106,9 @@ pipeline/extraction.sh  →  pipeline/clean.py  →  data/  →  webapp/app.py
 ```
 
 ```
-├── install.sh        installe tout dans .venv, une seule fois après le clone
-├── bin/              trouver_python.sh : trouve un Python 3.12–3.14 (Windows, Mac, Linux)
+├── install.sh        installe tout dans .venv avec uv, une seule fois après le clone
+├── pyproject.toml    les librairies du projet (uv) ; uv.lock fige leurs versions exactes
+├── bin/              trouver_python.sh : trouve le Python de .venv (Windows, Mac, Linux)
 ├── run.sh            lance tout : le pipeline en boucle (arrière-plan) + l'appli
 ├── config.py         la configuration : adresses des sources, chemins, port
 ├── pipeline/         préparer les données (toutes les 24 h)
