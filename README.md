@@ -34,7 +34,7 @@ bash run.sh         # lance l'appli + le pipeline
 
 La page s'ouvre toute seule dans le navigateur (**http://localhost:8501**). Sur un serveur sans écran, elle ne s'ouvre pas, il faut aller soi-même sur `http://<adresse du serveur>:8501`.
 
-**Ce qu'il faut avant :** Git et **[uv](https://docs.astral.sh/uv/)**, l'outil qui gère l'environnement Python du projet. Pas besoin d'installer Python : uv télécharge lui-même Python 3.14 s'il manque.
+/!\ AVANT il faut Git et **[uv](https://docs.astral.sh/uv/)**, l'outil qui gère l'environnement Python du projet. Pas besoin d'installer Python car uv télécharge lui-même Python 3.14 s'il manque.
 
 | Système | Où taper les commandes | Installer uv |
 |---|---|---|
@@ -53,12 +53,12 @@ Port déjà utilisé ? `PORT=8600 bash run.sh`.
 ```bash
 uv run pytest
 ```
-Les tests (`tests/`) vérifient les calculs (distance, positions ANFR, grille de couverture, lissage des mesures, poids du score) et l'appli (page, `/sante`, `/api/score`). Ils n'ont pas besoin d'Internet : l'API Adresse est remplacée par une fausse. pytest est installé par `bash install.sh` (groupe `dev` de `pyproject.toml`).
+Les tests (`tests/`) vérifient les calculs (distance, positions ANFR, grille de couverture, lissage des mesures, poids du score) et l'appli (page, `/sante`, `/api/score`). Ils n'ont pas besoin d'Internet, l'API Adresse est remplacée par une fausse. pytest est installé par `bash install.sh` (groupe `dev` de `pyproject.toml`).
 
 **CI/CD (GitHub Actions, `.github/workflows/ci.yml`)** : à chaque push sur `master`, GitHub
-1. Lance les tests ;
-2. S'ils passent, construit l'image Docker, la démarre et vérifie qu'elle répond sur `/sante` ;
-3. Publie l'image sur Docker Hub, seulement si le secret `DOCKERHUB_TOKEN` est configuré (GitHub → Settings → Secrets and variables → Actions).
+1. lance les tests ;
+2. s'ils passent, construit l'image Docker, la démarre et vérifie qu'elle répond sur `/sante` ;
+3. publie l'image sur Docker Hub, seulement si le secret `DOCKERHUB_TOKEN` est configuré (GitHub -> Settings -> Secrets and variables -> Actions).
 
 Le résultat est visible dans l'onglet **Actions** du dépôt.
 
