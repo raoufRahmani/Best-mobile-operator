@@ -56,9 +56,9 @@ uv run pytest
 Les tests (`tests/`) vérifient les calculs (distance, positions ANFR, grille de couverture, lissage des mesures, poids du score) et l'appli (page, `/sante`, `/api/score`). Ils n'ont pas besoin d'Internet : l'API Adresse est remplacée par une fausse. pytest est installé par `bash install.sh` (groupe `dev` de `pyproject.toml`).
 
 **CI/CD (GitHub Actions, `.github/workflows/ci.yml`)** : à chaque push sur `master`, GitHub
-1. lance les tests ;
-2. s'ils passent, construit l'image Docker, la démarre et vérifie qu'elle répond sur `/sante` ;
-3. publie l'image sur Docker Hub, seulement si le secret `DOCKERHUB_TOKEN` est configuré (GitHub → Settings → Secrets and variables → Actions).
+1. Lance les tests ;
+2. S'ils passent, construit l'image Docker, la démarre et vérifie qu'elle répond sur `/sante` ;
+3. Publie l'image sur Docker Hub, seulement si le secret `DOCKERHUB_TOKEN` est configuré (GitHub → Settings → Secrets and variables → Actions).
 
 Le résultat est visible dans l'onglet **Actions** du dépôt.
 
