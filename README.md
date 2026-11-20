@@ -6,7 +6,6 @@ Elle ne se base pas sur la pub des opérateurs, mais sur des données publiques 
 
 > Dans le cadre d'un projet en cours d'Ingénierie du code, M2 MoSEF, Université Paris 1 Panthéon-Sorbonne.
 
----
 
 ## Lancer l'appli
 
