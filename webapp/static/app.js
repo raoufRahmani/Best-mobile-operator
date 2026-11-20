@@ -121,7 +121,7 @@ function verdict(data) {
   return `
     <div class="verdict-score" style="--s:${premier.score}"><b>${premier.score}</b></div>
     <div>
-      <div class="grand">Chez toi, prends <em>${esc(data.gagnant)}</em>.</div>
+      <div class="grand"><em>${esc(data.gagnant)}</em></div>
       <p>${detail}</p>
       ${moinsCher}
     </div>
