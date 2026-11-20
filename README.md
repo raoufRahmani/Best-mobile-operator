@@ -1,16 +1,16 @@
-# 📶 Quel opérateur chez moi ?
+#Quel opérateur chez moi ?
 
-Tu tapes ton adresse, l'appli te dit quel opérateur mobile capte le mieux **chez toi** : Orange, SFR, Bouygues Telecom ou Free.
+On rentre une adresse, l'appli retourne quel opérateur mobile capte le mieux à cet endroit parmi Orange, SFR, Bouygues Telecom ou Free.
 
-Elle ne se base pas sur la pub des opérateurs, mais sur des **données publiques** : les antennes déclarées à l'ANFR, les tests faits sur le terrain par l'Arcep (pages web, vidéo, débit), et les cartes de couverture officielles.
+Elle ne se base pas sur la pub des opérateurs, mais sur des données publiques : les antennes déclarées à l'ANFR, les tests faits sur le terrain par l'Arcep (pages web, vidéo, débit), et les cartes de couverture officielles.
 
-> Projet du cours **Initiation au DevOps pour un Data Scientist**, M2 MoSEF, Université Paris 1 Panthéon-Sorbonne.
+> Dans le cadre d'un projet en cours d'Ingénierie du code, M2 MoSEF, Université Paris 1 Panthéon-Sorbonne.
 
 ---
 
 ## Lancer l'appli
 
-### Avec Docker (le plus simple)
+### A. Avec Docker
 
 Il faut juste [Docker Desktop](https://www.docker.com/products/docker-desktop/) installé et lancé.
 
@@ -20,7 +20,8 @@ docker run -p 8501:8501 -v bmo_data:/app/data raoufrhm/best-mobile-operator:late
 
 Puis ouvrir **http://localhost:8501**.
 
-L'appli démarre **tout de suite** : les données déjà préparées (~27 Mo) sont dans le dépôt, dans `data/`. Rien à télécharger. En arrière-plan, le pipeline vérifie chaque jour si l'ANFR ou l'Arcep ont publié une nouvelle version, et ne télécharge que dans ce cas. Le volume `bmo_data` garde ces mises à jour d'un lancement à l'autre.
+L'appli démarre directement, les données déjà préparées (~27 Mo) sont dans le dépôt, dans `data/`, il n'y a rien à télécharger. 
+En arrière-plan, le pipeline vérifie chaque jour si l'ANFR ou l'Arcep ont publié une nouvelle version, et ne télécharge que dans ce cas. Le volume `bmo_data` garde ces mises à jour d'un lancement à l'autre.
 
 ### Sans Docker
 
@@ -31,7 +32,7 @@ bash install.sh     # une seule fois : uv crée l'environnement .venv et y insta
 bash run.sh         # lance l'appli + le pipeline
 ```
 
-La page s'ouvre toute seule dans le navigateur (**http://localhost:8501**). Sur un serveur sans écran, elle ne s'ouvre pas : on va soi-même sur `http://<adresse du serveur>:8501`.
+La page s'ouvre toute seule dans le navigateur (**http://localhost:8501**). Sur un serveur sans écran, elle ne s'ouvre pas, il faut aller soi-même sur `http://<adresse du serveur>:8501`.
 
 **Ce qu'il faut avant :** Git et **[uv](https://docs.astral.sh/uv/)**, l'outil qui gère l'environnement Python du projet. Pas besoin d'installer Python : uv télécharge lui-même Python 3.14 s'il manque.
 
