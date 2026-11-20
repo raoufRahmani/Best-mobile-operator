@@ -52,8 +52,12 @@
   reveler(".sources div", ".sources");
 
   // ---------- Résultats (appelé par app.js après chaque recherche) ----------
+  let animation;                                             // l'animation de la recherche précédente
   window.animerResultats = () => {
-    gsap.timeline({ defaults: { ease: "power3.out" } })
+    // Nouvelle recherche avant la fin de la précédente : on termine l'ancienne d'abord,
+    // sinon les éléments repartent d'une opacité à moitié animée et le verdict reste invisible
+    if (animation) animation.progress(1).kill();
+    animation = gsap.timeline({ defaults: { ease: "power3.out" } })
       .from(".resultat .entete-section > *", { y: 24, opacity: 0, duration: .6, stagger: .08 })
       .from("#conseil", { y: 30, opacity: 0, scale: .98, duration: .7 }, "-=.3")
       .from(".verdict-score", { "--s": 0, duration: 1.2, ease: "power2.out" }, "-=.4")
