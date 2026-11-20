@@ -8,8 +8,11 @@ WORKDIR /app
 #    rasterio a besoin de libexpat1 ; l'extraction (pipeline/extraction.sh) a besoin de curl et unzip :
 #    absents de l'image "slim"
 RUN apt-get update && apt-get install -y --no-install-recommends libexpat1 curl unzip && rm -rf /var/lib/apt/lists/*
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+#    Les librairies sont installées avec uv, aux versions exactes de uv.lock (sans pytest : --no-dev),
+#    dans /app/.venv, que run.sh trouve tout seul
+COPY --from=ghcr.io/astral-sh/uv:0.11.33 /uv /usr/local/bin/uv
+COPY pyproject.toml uv.lock .python-version ./
+RUN UV_PYTHON_DOWNLOADS=never uv sync --frozen --no-dev --no-cache
 
 # 4) Copier le code du projet
 COPY . .
