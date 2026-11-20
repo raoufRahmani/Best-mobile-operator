@@ -149,6 +149,6 @@ Pour comprendre les données : [`01_exploration.ipynb`](01_exploration.ipynb) (l
 ## Auteurs
 
 - Aya WIFAK
-- Abderraouf Rahmani
+- Abderraouf RAHMANI
 
 Image Docker : [raoufrhm/best-mobile-operator](https://hub.docker.com/r/raoufrhm/best-mobile-operator)
